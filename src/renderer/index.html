@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InvoicePro</title>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/tables.css" />
+    <link rel="stylesheet" href="css/forms.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Login View -->
+      <div id="login-view" class="view">
+        <div class="login-container">
+          <div class="login-header">
+            <h1>InvoicePro</h1>
+            <p>Offline Invoicing & Bookkeeping</p>
+          </div>
+          <form id="login-form" class="login-form">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                required
+                autocomplete="username"
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                autocomplete="current-password"
+              />
+            </div>
+            <div id="login-error" class="error-message"></div>
+            <button type="submit" class="btn btn-primary btn-block">
+              Login
+            </button>
+          </form>
+          <!-- <div class="login-footer">
+          <p>Default: admin / admin123</p>
+        </div> -->
+        </div>
+      </div>
+
+      <!-- Main App View -->
+      <div id="main-view" class="view hidden">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+          <div class="sidebar-header">
+            <h2>InvoicePro</h2>
+          </div>
+          <ul class="nav-menu">
+            <li>
+              <a href="#dashboard" class="nav-item active" data-view="dashboard"
+                >Dashboard</a
+              >
+            </li>
+            <li>
+              <a href="#products" class="nav-item" data-view="products"
+                >Products</a
+              >
+            </li>
+            <li>
+              <a href="#clients" class="nav-item" data-view="clients"
+                >Clients</a
+              >
+            </li>
+            <li>
+              <a href="#invoices" class="nav-item" data-view="invoices"
+                >Invoices</a
+              >
+            </li>
+            <li>
+              <a href="#payments" class="nav-item" data-view="payments"
+                >Payments</a
+              >
+            </li>
+            <li>
+              <a href="#reports" class="nav-item" data-view="reports"
+                >Reports</a
+              >
+            </li>
+          </ul>
+          <div class="sidebar-footer">
+            <a href="#settings" class="nav-item" data-view="settings"
+              >Settings</a
+            >
+            <button id="logout-btn" class="btn btn-secondary btn-sm">
+              Logout
+            </button>
+          </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="main-content">
+          <!-- Dashboard View -->
+          <div id="dashboard-view" class="content-view">
+            <div class="page-header">
+              <h1>Dashboard</h1>
+            </div>
+            <div class="dashboard-cards">
+              <div class="card">
+                <div class="card-icon card-icon-revenue">$</div>
+                <div class="card-content">
+                  <div class="card-value" id="total-revenue">$0.00</div>
+                  <div class="card-label">Total Revenue</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-pending">!</div>
+                <div class="card-content">
+                  <div class="card-value" id="pending-amount">$0.00</div>
+                  <div class="card-label">Pending</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-invoices">#</div>
+                <div class="card-content">
+                  <div class="card-value" id="total-invoices">0</div>
+                  <div class="card-label">Total Invoices</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-clients">@</div>
+                <div class="card-content">
+                  <div class="card-value" id="total-clients">0</div>
+                  <div class="card-label">Clients</div>
+                </div>
+              </div>
+            </div>
+            <div class="dashboard-grid">
+              <div class="card">
+                <h3>Recent Invoices</h3>
+                <table class="table" id="recent-invoices-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice #</th>
+                      <th>Client</th>
+                      <th>Total</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-invoices-body"></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>Pending Payments</h3>
+                <table class="table" id="pending-payments-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice #</th>
+                      <th>Client</th>
+                      <th>Amount Due</th>
+                      <th>Due Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pending-payments-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Products View -->
+          <div id="products-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Products & Services</h1>
+              <button class="btn btn-primary" id="add-product-btn">
+                Add Product
+              </button>
+            </div>
+            <div class="search-bar">
+              <input
+                type="text"
+                id="product-search"
+                placeholder="Search products..."
+              />
+            </div>
+            <table class="table" id="products-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Price</th>
+                  <th>Unit</th>
+                  <th>SKU</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Clients View -->
+          <div id="clients-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Clients</h1>
+              <button class="btn btn-primary" id="add-client-btn">
+                Add Client
+              </button>
+            </div>
+            <div class="search-bar">
+              <input
+                type="text"
+                id="client-search"
+                placeholder="Search clients..."
+              />
+            </div>
+            <table class="table" id="clients-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>City</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="clients-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Invoices View -->
+          <div id="invoices-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Invoices</h1>
+              <button class="btn btn-primary" id="create-invoice-btn">
+                Create Invoice
+              </button>
+            </div>
+            <div class="filters">
+              <select id="invoice-status-filter">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <input
+                type="text"
+                id="invoice-client-filter"
+                placeholder="Filter by client..."
+              />
+            </div>
+            <table class="table" id="invoices-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Client</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Issue Date</th>
+                  <th>Due Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="invoices-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Create Invoice View -->
+          <div id="create-invoice-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Create Invoice</h1>
+              <button class="btn btn-secondary" id="cancel-invoice-btn">
+                Cancel
+              </button>
+            </div>
+            <form id="invoice-form" class="form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="invoice-number">Invoice Number</label>
+                  <input type="text" id="invoice-number" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="invoice-client">Client *</label>
+                  <select id="invoice-client" required>
+                    <option value="">Select a client...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="invoice-issue-date">Issue Date</label>
+                  <input type="date" id="invoice-issue-date" />
+                </div>
+                <div class="form-group">
+                  <label for="invoice-due-date">Due Date</label>
+                  <input type="date" id="invoice-due-date" />
+                </div>
+              </div>
+
+              <h3>Line Items</h3>
+              <table class="table" id="line-items-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Tax %</th>
+                    <th>Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="line-items-body"></tbody>
+              </table>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                id="add-line-item-btn"
+              >
+                Add Item
+              </button>
+
+              <div class="invoice-totals">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="invoice-discount">Discount (%)</label>
+                    <input
+                      type="number"
+                      id="invoice-discount"
+                      value="0"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="invoice-tax">Tax (%)</label>
+                    <input
+                      type="number"
+                      id="invoice-tax"
+                      value="0"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div class="totals-display">
+                  <div class="totals-row">
+                    <span>Subtotal:</span>
+                    <span id="invoice-subtotal">$0.00</span>
+                  </div>
+                  <div class="totals-row">
+                    <span>Discount:</span>
+                    <span id="invoice-discount-amount">-$0.00</span>
+                  </div>
+                  <div class="totals-row">
+                    <span>Tax:</span>
+                    <span id="invoice-tax-amount">$0.00</span>
+                  </div>
+                  <div class="totals-row totals-grand-total">
+                    <span>Grand Total:</span>
+                    <span id="invoice-total">$0.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="invoice-notes">Notes</label>
+                <textarea id="invoice-notes" rows="3"></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  Save Invoice
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- View Invoice -->
+          <div id="view-invoice-view" class="content-view hidden">
+            <div class="page-header">
+              <h1 id="view-invoice-title">Invoice Details</h1>
+              <div class="page-actions">
+                <button class="btn btn-secondary" id="download-pdf-btn">
+                  Download PDF
+                </button>
+                <button class="btn btn-secondary" id="back-to-invoices-btn">
+                  Back
+                </button>
+              </div>
+            </div>
+            <div class="invoice-detail">
+              <div class="invoice-info">
+                <div class="info-section">
+                  <h3>Invoice Information</h3>
+                  <p>
+                    <strong>Invoice #:</strong> <span id="vi-number"></span>
+                  </p>
+                  <p><strong>Status:</strong> <span id="vi-status"></span></p>
+                  <p>
+                    <strong>Issue Date:</strong>
+                    <span id="vi-issue-date"></span>
+                  </p>
+                  <p>
+                    <strong>Due Date:</strong> <span id="vi-due-date"></span>
+                  </p>
+                </div>
+                <div class="info-section">
+                  <h3>Bill To</h3>
+                  <p id="vi-client-name"></p>
+                  <p id="vi-client-address"></p>
+                  <p id="vi-client-contact"></p>
+                </div>
+              </div>
+              <table class="table" id="vi-items-table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Tax %</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="vi-items-body"></tbody>
+              </table>
+              <div class="invoice-totals-display">
+                <p><strong>Subtotal:</strong> <span id="vi-subtotal"></span></p>
+                <p id="vi-discount-row">
+                  <strong>Discount:</strong> <span id="vi-discount"></span>
+                </p>
+                <p><strong>Tax:</strong> <span id="vi-tax"></span></p>
+                <p class="grand-total">
+                  <strong>Total:</strong> <span id="vi-total"></span>
+                </p>
+              </div>
+              <div id="vi-payments-section" class="payments-section">
+                <h3>Payments</h3>
+                <table class="table" id="vi-payments-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Amount</th>
+                      <th>Method</th>
+                      <th>Reference</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="vi-payments-body"></tbody>
+                </table>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  id="add-payment-btn"
+                >
+                  Record Payment
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payments View -->
+          <div id="payments-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Payments</h1>
+            </div>
+            <div class="filters">
+              <select id="payment-status-filter">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+            <table class="table" id="payments-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Client</th>
+                  <th>Total</th>
+                  <th>Paid</th>
+                  <th>Due</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="payments-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Reports View -->
+          <div id="reports-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Reports</h1>
+            </div>
+            <div class="report-filters">
+              <div class="form-group">
+                <label for="report-from-date">From Date</label>
+                <input type="date" id="report-from-date" />
+              </div>
+              <div class="form-group">
+                <label for="report-to-date">To Date</label>
+                <input type="date" id="report-to-date" />
+              </div>
+              <div class="form-group">
+                <label for="report-client">Client</label>
+                <select id="report-client">
+                  <option value="">All Clients</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" id="apply-report-filters-btn">
+                Apply Filters
+              </button>
+            </div>
+
+            <div class="report-cards">
+              <div class="card">
+                <div class="card-value" id="report-total-revenue">$0.00</div>
+                <div class="card-label">Total Revenue</div>
+              </div>
+              <div class="card">
+                <div class="card-value" id="report-invoice-count">0</div>
+                <div class="card-label">Paid Invoices</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Revenue Details</h3>
+              <table class="table" id="revenue-table">
+                <thead>
+                  <tr>
+                    <th>Invoice #</th>
+                    <th>Client</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="revenue-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Settings View -->
+          <div id="settings-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Settings</h1>
+            </div>
+            <form id="settings-form" class="form">
+              <h3>Company Information</h3>
+              <div class="form-group">
+                <label for="company-name">Company Name</label>
+                <input type="text" id="company-name" />
+              </div>
+              <div class="form-group">
+                <label for="company-address">Address</label>
+                <textarea id="company-address" rows="3"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="company-phone">Phone</label>
+                <input type="text" id="company-phone" />
+              </div>
+              <div class="form-group">
+                <label for="company-email">Email</label>
+                <input type="email" id="company-email" />
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  Save Settings
+                </button>
+              </div>
+            </form>
+            <div class="card" style="margin-top: 20px">
+              <h3>Change Password</h3>
+              <form id="change-password-form" class="form">
+                <div class="form-group">
+                  <label for="current-password">Current Password</label>
+                  <input type="password" id="current-password" required />
+                </div>
+                <div class="form-group">
+                  <label for="new-password">New Password</label>
+                  <input type="password" id="new-password" required />
+                </div>
+                <div class="form-group">
+                  <label for="confirm-password">Confirm New Password</label>
+                  <input type="password" id="confirm-password" required />
+                </div>
+                <div id="password-error" class="error-message"></div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">
+                    Change Password
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- Modal Container -->
+      <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal" id="modal">
+          <div class="modal-header">
+            <h2 id="modal-title">Modal</h2>
+            <button class="modal-close" id="modal-close">&times;</button>
+          </div>
+          <div class="modal-body" id="modal-body"></div>
+          <div class="modal-footer" id="modal-footer"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>

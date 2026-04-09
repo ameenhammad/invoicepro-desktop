@@ -1,0 +1,54 @@
+appId: com.invoicepro.app
+productName: InvoicePro
+copyright: Copyright © 2024 InvoicePro
+
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - src/**/*
+  - data/**/*
+  - package.json
+
+asar: true
+compression: normal
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  artifactName: ${productName}-${version}-win-${arch}.${ext}
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: build/icon.icns
+  category: public.app-category.business
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
+
+linux:
+  target:
+    - target: AppImage
+  icon: build/icon.png
+  category: Office
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
+
+extraResources:
+  - from: data
+    to: data
+    filter:
+      - "**/*"
