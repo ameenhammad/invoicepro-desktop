@@ -56,9 +56,16 @@ function insertInvoiceItems(db, invoiceId, items) {
   }
 }
 
-function calculateTotals(items, discountPercent, taxPercent) {
+// discountType 'percent' applies discountValue (0-100) to the subtotal;
+// 'amount' treats discountValue as a flat Rs. figure, clamped so it can
+// never exceed the subtotal (which would otherwise make the total go
+// negative before tax).
+function calculateTotals(items, discountType, discountValue, taxPercent) {
   const subtotal = items.reduce((sum, item) => sum + (item.line_total || 0), 0);
-  const discountAmount = subtotal * ((discountPercent || 0) / 100);
+  const discountAmount =
+    discountType === "amount"
+      ? Math.min(Math.max(discountValue || 0, 0), subtotal)
+      : subtotal * (Math.max(discountValue || 0, 0) / 100);
   const afterDiscount = subtotal - discountAmount;
   const taxAmount = afterDiscount * ((taxPercent || 0) / 100);
   const total = afterDiscount + taxAmount;
@@ -141,13 +148,24 @@ export function registerInvoiceHandlers(db) {
         status,
         issue_date,
         due_date,
+        discount_type,
         discount_percent,
+        discount_amount: discount_value_input,
         tax_percent,
         notes,
         items,
         payment_method,
         project_id,
+        walkin_customer_name,
       } = data;
+
+      // Backward/forward compatible: percent mode reads discount_percent,
+      // amount mode reads whatever flat Rs. figure the client sent as
+      // discount_amount (the pre-tax, pre-calculation input — distinct from
+      // the computed discount_amount column written below).
+      const resolvedDiscountType = discount_type === "amount" ? "amount" : "percent";
+      const discountValue =
+        resolvedDiscountType === "amount" ? discount_value_input : discount_percent;
 
       if (!client_id)
         return {
@@ -218,14 +236,15 @@ export function registerInvoiceHandlers(db) {
 
         const { subtotal, discountAmount, taxAmount, total } = calculateTotals(
           items,
-          discount_percent,
+          resolvedDiscountType,
+          discountValue,
           tax_percent,
         );
         const resolvedStatus = status || INVOICE_STATUS.PENDING;
 
         const result = db.run(
-          `INSERT INTO invoices (invoice_number, client_id, status, issue_date, due_date, subtotal, discount_percent, discount_amount, tax_percent, tax_amount, total, notes, project_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO invoices (invoice_number, client_id, status, issue_date, due_date, subtotal, discount_type, discount_percent, discount_amount, tax_percent, tax_amount, total, notes, project_id, walkin_customer_name)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             invoice_number,
             client_id,
@@ -233,13 +252,15 @@ export function registerInvoiceHandlers(db) {
             issue_date,
             due_date,
             subtotal,
-            discount_percent || 0,
+            resolvedDiscountType,
+            resolvedDiscountType === "percent" ? discount_percent || 0 : 0,
             discountAmount,
             tax_percent || 0,
             taxAmount,
             total,
             notes || "",
             project_id || null,
+            (walkin_customer_name || "").trim() || null,
           ],
         );
         const newInvoiceId = result.lastInsertRowid;
@@ -312,9 +333,21 @@ export function registerInvoiceHandlers(db) {
       const status = data.status !== undefined ? data.status : invoiceExists.status;
       const issue_date = data.issue_date !== undefined ? data.issue_date : invoiceExists.issue_date;
       const due_date = data.due_date !== undefined ? data.due_date : invoiceExists.due_date;
+      const discount_type =
+        data.discount_type !== undefined
+          ? (data.discount_type === "amount" ? "amount" : "percent")
+          : invoiceExists.discount_type || "percent";
       const discount_percent = data.discount_percent !== undefined ? data.discount_percent : invoiceExists.discount_percent;
+      const discountValue =
+        discount_type === "amount"
+          ? (data.discount_amount !== undefined ? data.discount_amount : invoiceExists.discount_amount)
+          : discount_percent;
       const tax_percent = data.tax_percent !== undefined ? data.tax_percent : invoiceExists.tax_percent;
       const notes = data.notes !== undefined ? data.notes : invoiceExists.notes;
+      const walkin_customer_name =
+        data.walkin_customer_name !== undefined
+          ? (data.walkin_customer_name || "").trim() || null
+          : invoiceExists.walkin_customer_name;
       const { items, project_id } = data;
 
       // project_id is optional on this endpoint — omitting it (the common
@@ -356,26 +389,29 @@ export function registerInvoiceHandlers(db) {
         const baseItems = items || currentItems;
         const { subtotal, discountAmount, taxAmount, total } = calculateTotals(
           baseItems,
-          discount_percent,
+          discount_type,
+          discountValue,
           tax_percent,
         );
 
         db.run(
           `UPDATE invoices SET status = ?, issue_date = ?, due_date = ?, subtotal = ?,
-         discount_percent = ?, discount_amount = ?, tax_percent = ?, tax_amount = ?,
-         total = ?, notes = ?, project_id = ? WHERE id = ?`,
+         discount_type = ?, discount_percent = ?, discount_amount = ?, tax_percent = ?, tax_amount = ?,
+         total = ?, notes = ?, project_id = ?, walkin_customer_name = ? WHERE id = ?`,
           [
             status,
             issue_date,
             due_date,
             subtotal,
-            discount_percent || 0,
+            discount_type,
+            discount_type === "percent" ? discount_percent || 0 : 0,
             discountAmount,
             tax_percent || 0,
             taxAmount,
             total,
             notes || "",
             resolvedProjectId || null,
+            walkin_customer_name,
             id,
           ],
         );

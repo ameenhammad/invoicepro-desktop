@@ -300,6 +300,30 @@ export const MIGRATIONS = [
       db.exec("CREATE INDEX IF NOT EXISTS idx_expenses_worker_id ON expenses(worker_id)");
     },
   },
+  {
+    version: 7,
+    name: "invoice_discount_type_and_walkin_name",
+    up(db) {
+      const invoiceColumns = db.prepare("PRAGMA table_info(invoices)").all().map((c) => c.name);
+
+      // 'percent' (existing behavior, applies discount_percent to the
+      // subtotal) or 'amount' (a flat Rs. figure entered directly, stored
+      // as-is in discount_amount). No CHECK constraint here — SQLite can't
+      // add one via ALTER TABLE cleanly, so it's validated at the IPC layer
+      // instead, same convention as project_id/worker_id above.
+      if (!invoiceColumns.includes("discount_type")) {
+        db.exec("ALTER TABLE invoices ADD COLUMN discount_type TEXT NOT NULL DEFAULT 'percent'");
+      }
+
+      // Lets a walk-in sale record the actual customer's name on the
+      // invoice (shown on the list, detail view, and PDF) without creating
+      // a new client record — the invoice still points at the shared
+      // Walk-in Customer client for reporting purposes.
+      if (!invoiceColumns.includes("walkin_customer_name")) {
+        db.exec("ALTER TABLE invoices ADD COLUMN walkin_customer_name TEXT");
+      }
+    },
+  },
 ];
 
 export function runVersionedMigrations(db) {

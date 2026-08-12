@@ -67,6 +67,12 @@
   gap: 16px;
 }
 
+/* A field alone in a two-column row (e.g. Issue Date now that Due Date is
+   gone) spans the full row instead of leaving an empty gap next to it. */
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
 .form-actions {
   display: flex;
   gap: 12px;
