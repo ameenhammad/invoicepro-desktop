@@ -57,9 +57,6 @@ export async function viewInvoice(id) {
   document.getElementById("vi-issue-date").textContent = formatDate(
     inv.issue_date,
   );
-  document.getElementById("vi-due-date").textContent = formatDate(
-    inv.due_date,
-  );
   const latestPayment = (inv.payments || [])[0];
   document.getElementById("vi-payment-method").textContent = latestPayment
     ? formatPaymentMethod(latestPayment.method)
@@ -672,6 +669,8 @@ function formatPaymentMethod(method) {
     .join(" ");
 }
 
+// Country isn't shown — every client defaults to Pakistan, so it was just
+// dead weight under the client's name on every single invoice.
 function formatAddress(inv) {
   const parts = [
     inv.client_address_line1,
@@ -679,7 +678,6 @@ function formatAddress(inv) {
     [inv.client_city, inv.client_state, inv.client_postal_code]
       .filter(Boolean)
       .join(", "),
-    inv.client_country,
   ].filter(Boolean);
   return parts.map(escapeHtml).join("<br>");
 }

@@ -76,14 +76,10 @@ export function generateInvoicePdf(invoice) {
         width: detailWidth,
         align: "right",
       });
-      doc.text(`Due Date: ${formatDate(invoice.due_date)}`, detailX, 112, {
-        width: detailWidth,
-        align: "right",
-      });
       doc.text(
         `Status: ${(invoice.status || "draft").toUpperCase()}`,
         detailX,
-        127,
+        112,
         { width: detailWidth, align: "right" },
       );
 
@@ -127,8 +123,6 @@ export function generateInvoicePdf(invoice) {
           { width: 260 },
         );
       }
-      if (invoice.client_country)
-        doc.text(invoice.client_country, leftMargin, doc.y, { width: 260 });
       if (invoice.client_email)
         doc.text(`Email: ${invoice.client_email}`, leftMargin, doc.y, {
           width: 260,
