@@ -1,6 +1,9 @@
 node_modules
 dist
 
+# Local Claude Code settings — machine-specific, not shared
+.claude/
+
 # Runtime data — the app always writes to Electron's userData directory,
 # never here. Anything under data/ is a stray dev-time artifact.
 data/
