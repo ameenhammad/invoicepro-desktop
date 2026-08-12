@@ -103,7 +103,10 @@ export function generateInvoicePdf(invoice) {
         .font("Helvetica-Bold")
         .text("Bill To:", leftMargin, billToY);
       doc.fillColor("#333333").fontSize(10).font("Helvetica");
-      doc.text(invoice.client_name || "N/A", leftMargin, doc.y, { width: 260 });
+      // Walk-in sales point at the shared Walk-in Customer client record but
+      // can carry the actual customer's name for this one invoice — show
+      // that in preference to the generic client name whenever it's set.
+      doc.text(invoice.walkin_customer_name || invoice.client_name || "N/A", leftMargin, doc.y, { width: 260 });
       if (invoice.client_address_line1)
         doc.text(invoice.client_address_line1, leftMargin, doc.y, {
           width: 260,
@@ -239,8 +242,12 @@ export function generateInvoicePdf(invoice) {
 
       if (invoice.discount_amount > 0) {
         tableY += 16;
+        const discountLabel =
+          invoice.discount_type === "amount"
+            ? "Discount:"
+            : `Discount (${invoice.discount_percent || 0}%):`;
         doc.text(
-          `Discount (${invoice.discount_percent || 0}%):`,
+          discountLabel,
           leftMargin + 230,
           tableY,
           { width: 120, align: "right" },

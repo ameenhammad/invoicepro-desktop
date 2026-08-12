@@ -15,7 +15,7 @@ export async function loadInvoices(filters = {}) {
       (inv) => `
     <tr>
       <td>${escapeHtml(inv.invoice_number)}</td>
-      <td>${escapeHtml(inv.client_name)}</td>
+      <td>${escapeHtml(inv.walkin_customer_name || inv.client_name)}</td>
       <td>${formatCurrency(inv.total)}</td>
       <td><span class="status-badge ${inv.status}">${inv.status}</span></td>
       <td>${formatDate(inv.issue_date)}</td>
@@ -71,7 +71,8 @@ export async function viewInvoice(id) {
   } else {
     projectRow.classList.add("hidden");
   }
-  document.getElementById("vi-client-name").textContent = inv.client_name;
+  document.getElementById("vi-client-name").textContent =
+    inv.walkin_customer_name || inv.client_name;
   document.getElementById("vi-client-address").innerHTML = formatAddress(inv);
   document.getElementById("vi-client-contact").innerHTML =
     `${escapeHtml(inv.client_email || "")}<br>${escapeHtml(inv.client_phone || "")}`;
@@ -172,7 +173,10 @@ export async function showCreateInvoiceView() {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("invoice-issue-date").value = today;
   document.getElementById("invoice-due-date").value = today;
+  document.getElementById("invoice-discount-type").value = "percent";
   document.getElementById("invoice-discount").value = "0";
+  updateDiscountLabel();
+  document.getElementById("invoice-walkin-name").value = "";
   document.getElementById("invoice-notes").value = "";
   document.getElementById("invoice-status").value = "paid";
 
@@ -198,6 +202,7 @@ export async function showCreateInvoiceView() {
     }
     select.focus();
   }
+  updateWalkinNameVisibility();
 
   const [productsResult, servicesResult, projectsResult] = await Promise.all([
     window.api.products.getAll(state.sessionToken),
@@ -248,6 +253,45 @@ document
 document
   .getElementById("invoice-tax")
   ?.addEventListener("input", calculateTotals);
+document
+  .getElementById("invoice-discount-type")
+  ?.addEventListener("change", () => {
+    updateDiscountLabel();
+    calculateTotals();
+  });
+document
+  .getElementById("invoice-client")
+  ?.addEventListener("change", updateWalkinNameVisibility);
+
+// The walk-in name field only makes sense when the selected client is the
+// shared Walk-in Customer record — for any named client it's hidden and
+// cleared so a stale name from a previous walk-in sale can never be sent.
+function updateWalkinNameVisibility() {
+  const group = document.getElementById("invoice-walkin-name-group");
+  const clientSelect = document.getElementById("invoice-client");
+  const walkinId = state.appSettings?.default_walkin_client_id;
+  if (!group || !clientSelect) return;
+
+  const isWalkin = !!walkinId && clientSelect.value === String(walkinId);
+  group.classList.toggle("hidden", !isWalkin);
+  if (!isWalkin) {
+    document.getElementById("invoice-walkin-name").value = "";
+  }
+}
+
+function updateDiscountLabel() {
+  const type = document.getElementById("invoice-discount-type")?.value;
+  const label = document.getElementById("invoice-discount-label");
+  const input = document.getElementById("invoice-discount");
+  if (!label || !input) return;
+  if (type === "amount") {
+    label.textContent = "Discount (Rs.)";
+    input.removeAttribute("max");
+  } else {
+    label.textContent = "Discount (%)";
+    input.setAttribute("max", "100");
+  }
+}
 
 // Line-item picker values are prefixed to disambiguate products from
 // services in a single combined <select> (their ids can otherwise collide).
@@ -307,12 +351,23 @@ async function renderLineItems() {
         <input type="number" class="item-qty" value="${item.quantity}" min="1" step="1">
         ${serviceUnit ? `<span class="text-muted">${escapeHtml(serviceUnit.toLowerCase())}</span>` : ""}
       </td>
-      <td>${formatCurrency(item.unit_price)}</td>
+      <td>
+        <input type="number" class="item-price" value="${item.unit_price}" min="0" step="0.01">
+      </td>
       <td><input type="number" class="item-tax" value="${item.tax_percent || 0}" min="0" max="100" step="0.01"></td>
       <td class="line-total">${formatCurrency(item.line_total)}</td>
       <td><button class="delete remove-line-btn">&times;</button></td>
     `;
     tbody.appendChild(tr);
+
+    // Quantity and price directly change this row's own total, not just the
+    // invoice grand total — update the line-total cell in place (instead of
+    // a full renderLineItems() re-render) so the per-line figure stays live
+    // as the user types, without losing focus mid-edit.
+    const lineTotalCell = tr.querySelector(".line-total");
+    const refreshLineTotal = () => {
+      lineTotalCell.textContent = formatCurrency(lineItems[idx].line_total);
+    };
 
     tr.querySelector(".item-select").addEventListener("change", async (e) => {
       await onItemSelect(idx, e.target.value);
@@ -328,6 +383,14 @@ async function renderLineItems() {
     });
     tr.querySelector(".item-qty").addEventListener("input", (e) => {
       onItemChange(idx, "quantity", e.target.value);
+      refreshLineTotal();
+    });
+    // Editable even for catalog services/products — lets a specific invoice
+    // give a client a one-off price without touching the price stored in
+    // the Services/Products section.
+    tr.querySelector(".item-price").addEventListener("input", (e) => {
+      onItemChange(idx, "unit_price", e.target.value);
+      refreshLineTotal();
     });
     tr.querySelector(".item-tax").addEventListener("input", (e) => {
       onItemChange(idx, "tax_percent", e.target.value);
@@ -435,11 +498,18 @@ function calculateTotals() {
     (sum, item) => sum + (item.line_total || 0),
     0,
   );
-  const discountPercent =
+  const discountType =
+    document.getElementById("invoice-discount-type")?.value === "amount"
+      ? "amount"
+      : "percent";
+  const discountInput =
     parseFloat(document.getElementById("invoice-discount")?.value) || 0;
   const taxPercent =
     parseFloat(document.getElementById("invoice-tax")?.value) || 0;
-  const discountAmount = subtotal * (discountPercent / 100);
+  const discountAmount =
+    discountType === "amount"
+      ? Math.min(Math.max(discountInput, 0), subtotal)
+      : subtotal * (Math.max(discountInput, 0) / 100);
   const afterDiscount = subtotal - discountAmount;
   const taxAmount = afterDiscount * (taxPercent / 100);
   const total = afterDiscount + taxAmount;
@@ -492,19 +562,28 @@ document
     });
 
     const projectValue = document.getElementById("invoice-project").value;
+    const discountType =
+      document.getElementById("invoice-discount-type").value === "amount"
+        ? "amount"
+        : "percent";
+    const discountInput =
+      parseFloat(document.getElementById("invoice-discount").value) || 0;
     const data = {
       client_id: parseInt(document.getElementById("invoice-client").value),
       issue_date: document.getElementById("invoice-issue-date").value,
       due_date: document.getElementById("invoice-due-date").value,
       status: document.getElementById("invoice-status").value,
       payment_method: document.getElementById("invoice-payment-method").value,
-      discount_percent:
-        parseFloat(document.getElementById("invoice-discount").value) || 0,
+      discount_type: discountType,
+      discount_percent: discountType === "percent" ? discountInput : 0,
+      discount_amount: discountType === "amount" ? discountInput : 0,
       tax_percent:
         parseFloat(document.getElementById("invoice-tax").value) || 0,
       notes: document.getElementById("invoice-notes").value,
       items: validItems,
       project_id: projectValue ? parseInt(projectValue) : null,
+      walkin_customer_name:
+        document.getElementById("invoice-walkin-name").value.trim() || null,
     };
 
     const result = await window.api.invoices.create(state.sessionToken, data);

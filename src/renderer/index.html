@@ -1098,6 +1098,17 @@
                 </div>
               </div>
               <div class="form-row">
+                <div class="form-group hidden" id="invoice-walkin-name-group">
+                  <label for="invoice-walkin-name">Walk-in Customer Name</label>
+                  <input
+                    type="text"
+                    id="invoice-walkin-name"
+                    placeholder="Enter customer's name"
+                  />
+                  <small class="helper-text">Shown on the invoice and PDF instead of "Walk-in Customer".</small>
+                </div>
+              </div>
+              <div class="form-row">
                 <div class="form-group">
                   <label for="invoice-project">Project (optional)</label>
                   <select id="invoice-project">
@@ -1167,7 +1178,14 @@
               <div class="invoice-totals">
                 <div class="form-row">
                   <div class="form-group">
-                    <label for="invoice-discount">Discount (%)</label>
+                    <label for="invoice-discount-type">Discount Type</label>
+                    <select id="invoice-discount-type">
+                      <option value="percent">Percent (%)</option>
+                      <option value="amount">Amount (Rs.)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="invoice-discount" id="invoice-discount-label">Discount (%)</label>
                     <input
                       type="number"
                       id="invoice-discount"
