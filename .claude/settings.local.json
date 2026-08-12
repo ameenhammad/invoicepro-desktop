@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start:*)",
+      "Bash(kill %1)",
+      "Bash(npm run:*)",
+      "Bash(node -e ':*)",
+      "Bash(node:*)",
+      "Bash(npm rebuild:*)",
+      "Bash(npm install:*)",
+      "Bash(npx @electron/rebuild)",
+      "Bash(npx electron-builder:*)",
+      "Bash(pkill -f electron)",
+      "Bash(pkill -9 -f \"electron\")",
+      "Bash(pkill -9 -f electron)",
+      "Bash(sqlite3 *)",
+      "Bash(npx electron-rebuild *)",
+      "Bash(pkill -f \"electron\")",
+      "Bash(node_modules/.bin/electron *)",
+      "Bash(mkdir -p /tmp/claude-1000/-home-muneeb-Desktop-invoicepro/23a36396-39e2-41b4-bc0c-562e169e70a2/scratchpad/pwtest)",
+      "Bash(npm init *)",
+      "Bash(mkdir -p /tmp/shots)",
+      "Bash(NODE_PATH=/tmp/claude-1000/-home-muneeb-Desktop-invoicepro/23a36396-39e2-41b4-bc0c-562e169e70a2/scratchpad/pwtest/node_modules timeout 60 node /tmp/claude-1000/-home-muneeb-Desktop-invoicepro/23a36396-39e2-41b4-bc0c-562e169e70a2/scratchpad/driver.mjs /tmp/claude-1000/-home-muneeb-Desktop-invoicepro/23a36396-39e2-41b4-bc0c-562e169e70a2/scratchpad/steps1.json)",
+      "Bash(cp *)",
+      "Read(//tmp/**)"
+    ]
+  }
+}
