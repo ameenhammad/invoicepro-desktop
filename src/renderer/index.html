@@ -2,9 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      FIX: Removed 'unsafe-inline' from style-src to tighten CSP.
+      Inline onclick handlers removed from HTML (see body fixes below).
+      All styles moved to external CSS files.
+    -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+      content="default-src 'self'; script-src 'self'; style-src 'self'"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>InvoicePro</title>
@@ -21,7 +26,7 @@
         <div class="login-container">
           <div class="login-header">
             <h1>InvoicePro</h1>
-            <p>Offline Invoicing & Bookkeeping</p>
+            <p>Offline Invoicing &amp; Bookkeeping</p>
           </div>
           <form id="login-form" class="login-form">
             <div class="form-group">
@@ -44,62 +49,119 @@
                 autocomplete="current-password"
               />
             </div>
-            <div id="login-error" class="error-message"></div>
+            <div id="login-error" class="error-message" role="alert"></div>
             <button type="submit" class="btn btn-primary btn-block">
               Login
             </button>
           </form>
-          <!-- <div class="login-footer">
-          <p>Default: admin / admin123</p>
-        </div> -->
         </div>
       </div>
 
       <!-- Main App View -->
       <div id="main-view" class="view hidden">
-        <!-- Sidebar -->
+        <!-- Collapsible Sidebar -->
         <nav id="sidebar">
           <div class="sidebar-header">
+            <button
+              id="sidebar-toggle"
+              class="sidebar-toggle"
+              aria-label="Toggle sidebar"
+            >
+              <span class="toggle-icon">&#9776;</span>
+            </button>
             <h2>InvoicePro</h2>
           </div>
           <ul class="nav-menu">
             <li>
-              <a href="#dashboard" class="nav-item active" data-view="dashboard"
-                >Dashboard</a
+              <a
+                href="#dashboard"
+                class="nav-item active"
+                data-view="dashboard"
               >
+                <span class="nav-icon">&#9632;</span>
+                <span class="nav-text">Dashboard</span>
+              </a>
             </li>
             <li>
-              <a href="#products" class="nav-item" data-view="products"
-                >Products</a
-              >
+              <a href="#products" class="nav-item" data-view="products">
+                <span class="nav-icon">&#9633;</span>
+                <span class="nav-text">Products</span>
+              </a>
             </li>
             <li>
-              <a href="#clients" class="nav-item" data-view="clients"
-                >Clients</a
-              >
+              <a href="#services" class="nav-item" data-view="services">
+                <span class="nav-icon">&#9881;</span>
+                <span class="nav-text">Services</span>
+              </a>
             </li>
             <li>
-              <a href="#invoices" class="nav-item" data-view="invoices"
-                >Invoices</a
-              >
+              <a href="#suppliers" class="nav-item" data-view="suppliers">
+                <span class="nav-icon">&#9737;</span>
+                <span class="nav-text">Suppliers</span>
+              </a>
             </li>
             <li>
-              <a href="#payments" class="nav-item" data-view="payments"
-                >Payments</a
-              >
+              <a href="#purchases" class="nav-item" data-view="purchases">
+                <span class="nav-icon">&#8681;</span>
+                <span class="nav-text">Purchases</span>
+              </a>
             </li>
             <li>
-              <a href="#reports" class="nav-item" data-view="reports"
-                >Reports</a
-              >
+              <a href="#clients" class="nav-item" data-view="clients">
+                <span class="nav-icon">&#9644;</span>
+                <span class="nav-text">Clients</span>
+              </a>
+            </li>
+            <li>
+              <a href="#projects" class="nav-item" data-view="projects">
+                <span class="nav-icon">&#9873;</span>
+                <span class="nav-text">Projects</span>
+              </a>
+            </li>
+            <li>
+              <a href="#invoices" class="nav-item" data-view="invoices">
+                <span class="nav-icon">&#9635;</span>
+                <span class="nav-text">Invoices</span>
+              </a>
+            </li>
+            <li>
+              <a href="#payments" class="nav-item" data-view="payments">
+                <span class="nav-icon">&#9670;</span>
+                <span class="nav-text">Payments</span>
+              </a>
+            </li>
+            <li>
+              <a href="#expenses" class="nav-item" data-view="expenses">
+                <span class="nav-icon">&#8722;</span>
+                <span class="nav-text">Expenses</span>
+              </a>
+            </li>
+            <li>
+              <a href="#workers" class="nav-item" data-view="workers">
+                <span class="nav-icon">&#9775;</span>
+                <span class="nav-text">Workers</span>
+              </a>
+            </li>
+            <li>
+              <a href="#cashflow" class="nav-item" data-view="cashflow">
+                <span class="nav-icon">&#8646;</span>
+                <span class="nav-text">Cash Flow</span>
+              </a>
+            </li>
+            <li>
+              <a href="#reports" class="nav-item" data-view="reports">
+                <span class="nav-icon">&#9636;</span>
+                <span class="nav-text">Reports</span>
+              </a>
             </li>
           </ul>
           <div class="sidebar-footer">
-            <a href="#settings" class="nav-item" data-view="settings"
-              >Settings</a
-            >
+            <a href="#settings" class="nav-item" data-view="settings">
+              <span class="nav-icon">&#9881;</span>
+              <span class="nav-text">Settings</span>
+            </a>
             <button id="logout-btn" class="btn btn-secondary btn-sm">
-              Logout
+              <span class="nav-text">Logout</span>
             </button>
           </div>
         </nav>
@@ -111,64 +173,387 @@
             <div class="page-header">
               <h1>Dashboard</h1>
             </div>
+            <!-- FIX: Removed inline onclick handlers — wired in app.js instead -->
+            <div class="dashboard-actions">
+              <button class="action-btn" id="dash-add-product-btn">
+                <span class="action-icon">+</span>
+                <span>Add Product</span>
+              </button>
+              <button class="action-btn" id="dash-add-client-btn">
+                <span class="action-icon">+</span>
+                <span>Add Client</span>
+              </button>
+              <button class="action-btn" id="dash-add-expense-btn">
+                <span class="action-icon">+</span>
+                <span>Add Expense</span>
+              </button>
+              <button
+                class="action-btn action-btn-primary"
+                id="dash-create-invoice-btn"
+              >
+                <span class="action-icon">+</span>
+                <span>Create Invoice</span>
+              </button>
+            </div>
+
+            <h3 class="dashboard-section-title">Today</h3>
             <div class="dashboard-cards">
               <div class="card">
-                <div class="card-icon card-icon-revenue">$</div>
+                <div class="card-icon card-icon-revenue">Rs.</div>
                 <div class="card-content">
-                  <div class="card-value" id="total-revenue">$0.00</div>
-                  <div class="card-label">Total Revenue</div>
+                  <div class="card-value" id="today-cash-in">Rs. 0.00</div>
+                  <div class="card-label">Cash In</div>
                 </div>
               </div>
               <div class="card">
-                <div class="card-icon card-icon-pending">!</div>
+                <div class="card-icon card-icon-pending">Rs.</div>
                 <div class="card-content">
-                  <div class="card-value" id="pending-amount">$0.00</div>
-                  <div class="card-label">Pending</div>
+                  <div class="card-value" id="today-cash-out">Rs. 0.00</div>
+                  <div class="card-label">Cash Out</div>
                 </div>
               </div>
+              <div class="card">
+                <div class="card-icon card-icon-invoices">=</div>
+                <div class="card-content">
+                  <div class="card-value" id="today-net-cash">Rs. 0.00</div>
+                  <div class="card-label">Net Cash</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-clients">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="today-sales-received">Rs. 0.00</div>
+                  <div class="card-label">Payments Received</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-invoices">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="today-sales">Rs. 0.00</div>
+                  <div class="card-label">Sales (invoiced today)</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-alert">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="today-expenses">Rs. 0.00</div>
+                  <div class="card-label">Expenses</div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="dashboard-section-title">This Month</h3>
+            <div class="dashboard-cards">
+              <div class="card">
+                <div class="card-icon card-icon-revenue">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-income">Rs. 0.00</div>
+                  <div class="card-label">Total Income</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-pending">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-expenses">Rs. 0.00</div>
+                  <div class="card-label">Total Expenses</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-invoices">=</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-net-cash-flow">Rs. 0.00</div>
+                  <div class="card-label">Net Cash Flow</div>
+                </div>
+              </div>
+              <div class="card alert-card">
+                <div class="card-icon card-icon-alert">!</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-outstanding">Rs. 0.00</div>
+                  <div class="card-label">Outstanding Receivables</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-revenue">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-project-revenue">Rs. 0.00</div>
+                  <div class="card-label">Project Revenue</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-revenue">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-workshop-revenue">Rs. 0.00</div>
+                  <div class="card-label">Workshop Revenue</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-clients">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-hardware-revenue">Rs. 0.00</div>
+                  <div class="card-label">Hardware Revenue</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-pending">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-purchases">Rs. 0.00</div>
+                  <div class="card-label">Purchases</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-pending">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-wages">Rs. 0.00</div>
+                  <div class="card-label">Wages</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-pending">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-rent">Rs. 0.00</div>
+                  <div class="card-label">Rent</div>
+                </div>
+              </div>
+              <div class="card alert-card">
+                <div class="card-icon card-icon-alert">!</div>
+                <div class="card-content">
+                  <div class="card-value" id="month-supplier-payables">Rs. 0.00</div>
+                  <div class="card-label">Supplier Payables</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-grid">
+              <div class="card">
+                <h3>Recent Transactions</h3>
+                <table class="table" id="recent-transactions-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Direction</th>
+                      <th>Amount</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-transactions-body"></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>Recent Expenses</h3>
+                <table class="table" id="recent-expenses-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Category</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-expenses-body"></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>Recent Payments</h3>
+                <table class="table" id="recent-payments-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Invoice #</th>
+                      <th>Customer</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-payments-body"></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>Low Stock Products</h3>
+                <table class="table" id="dash-low-stock-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Size</th>
+                      <th>Stock</th>
+                      <th>Alert At</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-low-stock-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <h3 class="dashboard-section-title">Projects</h3>
+            <div class="dashboard-cards">
               <div class="card">
                 <div class="card-icon card-icon-invoices">#</div>
                 <div class="card-content">
-                  <div class="card-value" id="total-invoices">0</div>
-                  <div class="card-label">Total Invoices</div>
+                  <div class="card-value" id="dash-active-projects">0</div>
+                  <div class="card-label">Active Projects</div>
+                </div>
+              </div>
+              <div class="card alert-card">
+                <div class="card-icon card-icon-alert">!</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-project-outstanding">Rs. 0.00</div>
+                  <div class="card-label">Outstanding Project Payments</div>
                 </div>
               </div>
               <div class="card">
-                <div class="card-icon card-icon-clients">@</div>
+                <div class="card-icon card-icon-revenue">Rs.</div>
                 <div class="card-content">
-                  <div class="card-value" id="total-clients">0</div>
-                  <div class="card-label">Clients</div>
+                  <div class="card-value" id="dash-project-revenue">Rs. 0.00</div>
+                  <div class="card-label">Project Revenue</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-pending">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-project-cost">Rs. 0.00</div>
+                  <div class="card-label">Project Costs</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-clients">=</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-project-profit">Rs. 0.00</div>
+                  <div class="card-label">Project Profit</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Projects Nearing Completion</h3>
+              <table class="table" id="dash-nearing-completion-table">
+                <thead>
+                  <tr>
+                    <th>Project #</th>
+                    <th>Name</th>
+                    <th>Expected Completion</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-nearing-completion-body"></tbody>
+              </table>
+            </div>
+
+            <h3 class="dashboard-section-title">Workshop</h3>
+            <div class="dashboard-cards">
+              <div class="card">
+                <div class="card-icon card-icon-revenue">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-sheet-cutting-revenue">Rs. 0.00</div>
+                  <div class="card-label">Sheet Cutting Revenue</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-revenue">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-edge-banding-revenue">Rs. 0.00</div>
+                  <div class="card-label">Edge Banding Revenue</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-clients">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-hardware-sales">Rs. 0.00</div>
+                  <div class="card-label">Hardware Sales</div>
+                </div>
+              </div>
+              <div class="card alert-card">
+                <div class="card-icon card-icon-alert">!</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-low-stock-items">0</div>
+                  <div class="card-label">Low Stock Items</div>
                 </div>
               </div>
             </div>
             <div class="dashboard-grid">
               <div class="card">
-                <h3>Recent Invoices</h3>
-                <table class="table" id="recent-invoices-table">
+                <h3>Recent Service Sales</h3>
+                <table class="table" id="dash-recent-service-sales-table">
                   <thead>
                     <tr>
+                      <th>Service</th>
+                      <th>Qty</th>
+                      <th>Amount</th>
                       <th>Invoice #</th>
-                      <th>Client</th>
-                      <th>Total</th>
-                      <th>Status</th>
-                      <th>Date</th>
                     </tr>
                   </thead>
-                  <tbody id="recent-invoices-body"></tbody>
+                  <tbody id="dash-recent-service-sales-body"></tbody>
                 </table>
               </div>
               <div class="card">
-                <h3>Pending Payments</h3>
-                <table class="table" id="pending-payments-table">
+                <h3>Recent Hardware Sales</h3>
+                <table class="table" id="dash-recent-hardware-sales-table">
                   <thead>
                     <tr>
-                      <th>Invoice #</th>
-                      <th>Client</th>
-                      <th>Amount Due</th>
-                      <th>Due Date</th>
+                      <th>Product</th>
+                      <th>Variant</th>
+                      <th>Qty</th>
+                      <th>Amount</th>
                     </tr>
                   </thead>
-                  <tbody id="pending-payments-body"></tbody>
+                  <tbody id="dash-recent-hardware-sales-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <h3 class="dashboard-section-title">Purchases &amp; Workers</h3>
+            <div class="dashboard-cards">
+              <div class="card">
+                <div class="card-icon card-icon-pending">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-total-purchases">Rs. 0.00</div>
+                  <div class="card-label">Total Purchases</div>
+                </div>
+              </div>
+              <div class="card alert-card">
+                <div class="card-icon card-icon-alert">!</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-supplier-payables">Rs. 0.00</div>
+                  <div class="card-label">Supplier Payables</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-pending">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-worker-payments">Rs. 0.00</div>
+                  <div class="card-label">Worker Payments</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-icon card-icon-clients">Rs.</div>
+                <div class="card-content">
+                  <div class="card-value" id="dash-wage-expenses">Rs. 0.00</div>
+                  <div class="card-label">Worker / Wage Expenses</div>
+                </div>
+              </div>
+            </div>
+            <div class="dashboard-grid">
+              <div class="card">
+                <h3>Recent Purchases</h3>
+                <table class="table" id="dash-recent-purchases-table">
+                  <thead>
+                    <tr>
+                      <th>Purchase #</th>
+                      <th>Supplier</th>
+                      <th>Total</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-recent-purchases-body"></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>Recent Wage Payments</h3>
+                <table class="table" id="dash-recent-wage-payments-table">
+                  <thead>
+                    <tr>
+                      <th>Worker</th>
+                      <th>Amount</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-recent-wage-payments-body"></tbody>
                 </table>
               </div>
             </div>
@@ -177,7 +562,7 @@
           <!-- Products View -->
           <div id="products-view" class="content-view hidden">
             <div class="page-header">
-              <h1>Products & Services</h1>
+              <h1>Products &amp; Services</h1>
               <button class="btn btn-primary" id="add-product-btn">
                 Add Product
               </button>
@@ -187,21 +572,283 @@
                 type="text"
                 id="product-search"
                 placeholder="Search products..."
+                aria-label="Search products"
               />
             </div>
             <table class="table" id="products-table">
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th>Category</th>
                   <th>Description</th>
-                  <th>Price</th>
-                  <th>Unit</th>
-                  <th>SKU</th>
+                  <th>Variants</th>
+                  <th>Total Stock</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="products-body"></tbody>
             </table>
+          </div>
+
+          <!-- Services View -->
+          <div id="services-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Services</h1>
+              <button class="btn btn-primary" id="add-service-btn">
+                Add Service
+              </button>
+            </div>
+            <div class="search-bar">
+              <input
+                type="text"
+                id="service-search"
+                placeholder="Search services..."
+                aria-label="Search services"
+              />
+            </div>
+            <table class="table" id="services-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Unit</th>
+                  <th>Selling Rate</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="services-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Suppliers View -->
+          <div id="suppliers-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Suppliers</h1>
+              <button class="btn btn-primary" id="add-supplier-btn">
+                Add Supplier
+              </button>
+            </div>
+            <div class="search-bar">
+              <input
+                type="text"
+                id="supplier-search"
+                placeholder="Search suppliers..."
+                aria-label="Search suppliers"
+              />
+            </div>
+            <table class="table" id="suppliers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Address</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="suppliers-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Purchases View -->
+          <div id="purchases-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Purchases</h1>
+              <button class="btn btn-primary" id="create-purchase-btn">
+                New Purchase
+              </button>
+            </div>
+            <div class="filters">
+              <select id="purchase-supplier-filter" aria-label="Filter by supplier">
+                <option value="">All Suppliers</option>
+              </select>
+              <select id="purchase-status-filter" aria-label="Filter by status">
+                <option value="">All Statuses</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+            <table class="table" id="purchases-table">
+              <thead>
+                <tr>
+                  <th>Purchase #</th>
+                  <th>Supplier</th>
+                  <th>Date</th>
+                  <th>Total</th>
+                  <th>Paid</th>
+                  <th>Outstanding</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="purchases-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Create Purchase View -->
+          <div id="create-purchase-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>New Purchase</h1>
+              <button class="btn btn-secondary" id="cancel-purchase-btn">
+                Cancel
+              </button>
+            </div>
+            <form id="purchase-form" class="form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="purchase-number">Purchase Number</label>
+                  <input type="text" id="purchase-number" readonly />
+                </div>
+                <div class="form-group">
+                  <label for="purchase-supplier">Supplier *</label>
+                  <select id="purchase-supplier" required>
+                    <option value="">Select a supplier...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="purchase-date">Purchase Date</label>
+                  <input type="date" id="purchase-date" />
+                </div>
+                <div class="form-group">
+                  <label for="purchase-accounting-month">Accounting Month</label>
+                  <input type="month" id="purchase-accounting-month" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="purchase-project">Project (optional)</label>
+                  <select id="purchase-project">
+                    <option value="">Not linked to a project</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="purchase-status">Payment Status</label>
+                  <select id="purchase-status">
+                    <option value="unpaid">Unpaid</option>
+                    <option value="paid">Paid (record full payment now)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="purchase-method">Payment Method</label>
+                <select id="purchase-method">
+                  <option value="cash">Cash</option>
+                  <option value="check">Check</option>
+                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="card">Card</option>
+                </select>
+                <small class="helper-text">Used only when Payment Status is Paid.</small>
+              </div>
+
+              <h3>Items</h3>
+              <table class="table" id="purchase-items-table">
+                <thead>
+                  <tr>
+                    <th>Product / Variant</th>
+                    <th>Quantity</th>
+                    <th>Unit Cost</th>
+                    <th>Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="purchase-items-body"></tbody>
+              </table>
+              <button type="button" class="btn btn-secondary btn-sm" id="add-purchase-item-btn">+ Add Item</button>
+
+              <div class="invoice-totals">
+                <div class="totals-display">
+                  <div class="totals-row totals-grand-total">
+                    <span>Total:</span>
+                    <span id="purchase-total">Rs. 0.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="purchase-notes">Notes</label>
+                <textarea id="purchase-notes" rows="3"></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="save-purchase-btn">Save Purchase</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Purchase Detail View -->
+          <div id="view-purchase-view" class="content-view hidden">
+            <div class="page-header">
+              <h1 id="vpu-title">Purchase Details</h1>
+              <div class="page-actions">
+                <button class="btn btn-secondary" id="vpu-record-payment-btn">Record Payment</button>
+                <button class="btn btn-secondary" id="vpu-back-btn">Back</button>
+              </div>
+            </div>
+            <div class="invoice-detail">
+              <div class="invoice-info">
+                <div class="info-section">
+                  <h3>Purchase Information</h3>
+                  <p><strong>Status:</strong> <span id="vpu-status"></span></p>
+                  <p><strong>Supplier:</strong> <span id="vpu-supplier"></span></p>
+                  <p><strong>Date:</strong> <span id="vpu-date"></span></p>
+                  <p><strong>Accounting Month:</strong> <span id="vpu-accounting-month"></span></p>
+                  <p id="vpu-project-row" class="hidden">
+                    <strong>Project:</strong> <span id="vpu-project"></span>
+                  </p>
+                </div>
+                <div class="info-section">
+                  <h3>Notes</h3>
+                  <p id="vpu-notes"></p>
+                </div>
+              </div>
+
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="vpu-total">Rs. 0.00</div>
+                  <div class="card-label">Total</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="vpu-paid">Rs. 0.00</div>
+                  <div class="card-label">Paid</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="vpu-outstanding">Rs. 0.00</div>
+                  <div class="card-label">Outstanding</div>
+                </div>
+              </div>
+
+              <table class="table" id="vpu-items-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Variant</th>
+                    <th>Qty</th>
+                    <th>Unit Cost</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="vpu-items-body"></tbody>
+              </table>
+
+              <div class="payments-section">
+                <h3>Payments</h3>
+                <table class="table" id="vpu-payments-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Amount</th>
+                      <th>Method</th>
+                      <th>Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vpu-payments-body"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           <!-- Clients View -->
@@ -217,20 +864,182 @@
                 type="text"
                 id="client-search"
                 placeholder="Search clients..."
+                aria-label="Search clients"
               />
             </div>
             <table class="table" id="clients-table">
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Email</th>
                   <th>Phone</th>
-                  <th>City</th>
+                  <th>Address</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="clients-body"></tbody>
             </table>
+          </div>
+
+          <!-- Projects View -->
+          <div id="projects-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Projects</h1>
+              <button class="btn btn-primary" id="add-project-btn">
+                Add Project
+              </button>
+            </div>
+            <div class="filters">
+              <select id="project-status-filter" aria-label="Filter by status">
+                <option value="">All Statuses</option>
+                <option value="quotation">Quotation</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <table class="table" id="projects-table">
+              <thead>
+                <tr>
+                  <th>Project #</th>
+                  <th>Name</th>
+                  <th>Customer</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Quoted</th>
+                  <th>Received</th>
+                  <th>Cost</th>
+                  <th>Profit</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="projects-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Project Detail View -->
+          <div id="view-project-view" class="content-view hidden">
+            <div class="page-header">
+              <h1 id="vp-title">Project Details</h1>
+              <div class="page-actions">
+                <button class="btn btn-secondary" id="vp-edit-btn">Edit</button>
+                <button class="btn btn-secondary" id="vp-back-btn">Back</button>
+              </div>
+            </div>
+            <div class="invoice-detail">
+              <div class="invoice-info">
+                <div class="info-section">
+                  <h3>Project Information</h3>
+                  <p><strong>Status:</strong> <span id="vp-status"></span></p>
+                  <p><strong>Customer:</strong> <span id="vp-customer"></span></p>
+                  <p><strong>Type:</strong> <span id="vp-type"></span></p>
+                  <p><strong>Start &rarr; Expected Completion:</strong> <span id="vp-dates"></span></p>
+                </div>
+                <div class="info-section">
+                  <h3>Description &amp; Notes</h3>
+                  <p id="vp-description"></p>
+                  <p id="vp-notes"></p>
+                </div>
+              </div>
+
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="vp-quoted-amount">Rs. 0.00</div>
+                  <div class="card-label">Quoted Amount</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="vp-invoiced">Rs. 0.00</div>
+                  <div class="card-label">Invoiced</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="vp-amount-received">Rs. 0.00</div>
+                  <div class="card-label">Amount Received</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="vp-outstanding">Rs. 0.00</div>
+                  <div class="card-label">Outstanding</div>
+                </div>
+              </div>
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="vp-total-cost">Rs. 0.00</div>
+                  <div class="card-label">Total Cost</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="vp-cost-paid">Rs. 0.00</div>
+                  <div class="card-label">Cost Paid</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="vp-profit">Rs. 0.00</div>
+                  <div class="card-label">Profit (Received − Cost)</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="vp-profit-margin">—</div>
+                  <div class="card-label">Profit Margin</div>
+                </div>
+              </div>
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="vp-estimated-profit">Rs. 0.00</div>
+                  <div class="card-label">Estimated Profit (Quoted − Cost)</div>
+                </div>
+              </div>
+
+              <div class="dashboard-grid">
+                <div class="card">
+                  <h3>Cost Breakdown</h3>
+                  <table class="table">
+                    <thead>
+                      <tr><th>Category</th><th>Total</th></tr>
+                    </thead>
+                    <tbody id="vp-cost-breakdown-body"></tbody>
+                  </table>
+                </div>
+                <div class="card">
+                  <h3>Linked Expenses</h3>
+                  <table class="table">
+                    <thead>
+                      <tr><th>Date</th><th>Category</th><th>Amount</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="vp-expenses-body"></tbody>
+                  </table>
+                </div>
+                <div class="card">
+                  <h3>Linked Purchases</h3>
+                  <table class="table">
+                    <thead>
+                      <tr><th>Purchase #</th><th>Supplier</th><th>Total</th><th>Paid</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="vp-purchases-body"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Linked Invoices</h3>
+                <div class="filters">
+                  <select id="vp-link-invoice-select" aria-label="Select an invoice to link"></select>
+                  <button class="btn btn-secondary btn-sm" id="vp-link-invoice-btn">Link Invoice</button>
+                </div>
+                <table class="table">
+                  <thead>
+                    <tr><th>Invoice #</th><th>Total</th><th>Paid</th><th>Status</th><th>Issue Date</th><th></th></tr>
+                  </thead>
+                  <tbody id="vp-invoices-body"></tbody>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3>Payments Received</h3>
+                <table class="table">
+                  <thead>
+                    <tr><th>Date</th><th>Invoice #</th><th>Amount</th><th>Method</th></tr>
+                  </thead>
+                  <tbody id="vp-payments-body"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           <!-- Invoices View -->
@@ -242,18 +1051,13 @@
               </button>
             </div>
             <div class="filters">
-              <select id="invoice-status-filter">
+              <select id="invoice-status-filter" aria-label="Filter by status">
                 <option value="">All Statuses</option>
                 <option value="pending">Pending</option>
                 <option value="partial">Partial</option>
                 <option value="paid">Paid</option>
                 <option value="cancelled">Cancelled</option>
               </select>
-              <input
-                type="text"
-                id="invoice-client-filter"
-                placeholder="Filter by client..."
-              />
             </div>
             <table class="table" id="invoices-table">
               <thead>
@@ -271,10 +1075,11 @@
             </table>
           </div>
 
-          <!-- Create Invoice View -->
+          <!-- Create/Edit Invoice View -->
           <div id="create-invoice-view" class="content-view hidden">
             <div class="page-header">
-              <h1>Create Invoice</h1>
+              <!-- FIX: Title updated dynamically by JS for create vs edit -->
+              <h1 id="create-invoice-title">Create Invoice</h1>
               <button class="btn btn-secondary" id="cancel-invoice-btn">
                 Cancel
               </button>
@@ -294,6 +1099,14 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
+                  <label for="invoice-project">Project (optional)</label>
+                  <select id="invoice-project">
+                    <option value="">Not linked to a project</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
                   <label for="invoice-issue-date">Issue Date</label>
                   <input type="date" id="invoice-issue-date" />
                 </div>
@@ -302,15 +1115,40 @@
                   <input type="date" id="invoice-due-date" />
                 </div>
               </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="invoice-status">Status</label>
+                  <select id="invoice-status">
+                    <option value="paid">Paid</option>
+                    <option value="pending">Pending</option>
+                    <option value="partial">Partial</option>
+                    <option value="draft">Draft</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="invoice-payment-method">Payment Method</label>
+                  <select id="invoice-payment-method">
+                    <option value="cash">Cash</option>
+                    <option value="check">Check</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="card">Card</option>
+                  </select>
+                  <small class="helper-text">Used only when Status is Paid.</small>
+                </div>
+              </div>
 
               <h3>Line Items</h3>
               <table class="table" id="line-items-table">
                 <thead>
                   <tr>
-                    <th>Product</th>
+                    <th>Type</th>
+                    <th>Product / Service</th>
+                    <th>Size/Variant</th>
                     <th>Description</th>
                     <th>Qty</th>
                     <th>Unit Price</th>
+                    <!-- FIX: Added Tax % column to match view-invoice display -->
                     <th>Tax %</th>
                     <th>Total</th>
                     <th></th>
@@ -323,7 +1161,7 @@
                 class="btn btn-secondary"
                 id="add-line-item-btn"
               >
-                Add Item
+                + Add Item
               </button>
 
               <div class="invoice-totals">
@@ -354,19 +1192,19 @@
                 <div class="totals-display">
                   <div class="totals-row">
                     <span>Subtotal:</span>
-                    <span id="invoice-subtotal">$0.00</span>
+                    <span id="invoice-subtotal">Rs. 0.00</span>
                   </div>
                   <div class="totals-row">
                     <span>Discount:</span>
-                    <span id="invoice-discount-amount">-$0.00</span>
+                    <span id="invoice-discount-amount">-Rs. 0.00</span>
                   </div>
                   <div class="totals-row">
                     <span>Tax:</span>
-                    <span id="invoice-tax-amount">$0.00</span>
+                    <span id="invoice-tax-amount">Rs. 0.00</span>
                   </div>
                   <div class="totals-row totals-grand-total">
                     <span>Grand Total:</span>
-                    <span id="invoice-total">$0.00</span>
+                    <span id="invoice-total">Rs. 0.00</span>
                   </div>
                 </div>
               </div>
@@ -377,7 +1215,11 @@
               </div>
 
               <div class="form-actions">
-                <button type="submit" class="btn btn-primary">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  id="save-invoice-btn"
+                >
                   Save Invoice
                 </button>
               </div>
@@ -392,6 +1234,7 @@
                 <button class="btn btn-secondary" id="download-pdf-btn">
                   Download PDF
                 </button>
+                <button class="btn btn-secondary" id="print-btn">Print</button>
                 <button class="btn btn-secondary" id="back-to-invoices-btn">
                   Back
                 </button>
@@ -412,6 +1255,14 @@
                   <p>
                     <strong>Due Date:</strong> <span id="vi-due-date"></span>
                   </p>
+                  <p id="vi-payment-method-row">
+                    <strong>Payment Method:</strong>
+                    <span id="vi-payment-method"></span>
+                  </p>
+                  <p id="vi-project-row" class="hidden">
+                    <strong>Project:</strong>
+                    <span id="vi-project"></span>
+                  </p>
                 </div>
                 <div class="info-section">
                   <h3>Bill To</h3>
@@ -423,7 +1274,9 @@
               <table class="table" id="vi-items-table">
                 <thead>
                   <tr>
+                    <th>Type</th>
                     <th>Description</th>
+                    <th>Variant</th>
                     <th>Qty</th>
                     <th>Unit Price</th>
                     <th>Tax %</th>
@@ -472,13 +1325,14 @@
             <div class="page-header">
               <h1>Payments</h1>
             </div>
-            <div class="filters">
-              <select id="payment-status-filter">
-                <option value="">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="partial">Partial</option>
-                <option value="paid">Paid</option>
-              </select>
+            <!-- FIX: Added search bar for payments view -->
+            <div class="search-bar">
+              <input
+                type="text"
+                id="payments-search"
+                placeholder="Search by invoice or client..."
+                aria-label="Search payments"
+              />
             </div>
             <table class="table" id="payments-table">
               <thead>
@@ -494,6 +1348,237 @@
               </thead>
               <tbody id="payments-body"></tbody>
             </table>
+          </div>
+
+          <!-- Expenses View -->
+          <div id="expenses-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Expenses</h1>
+              <button class="btn btn-primary" id="add-expense-btn">
+                Add Expense
+              </button>
+            </div>
+            <div class="filters">
+              <select id="expense-scope-filter" aria-label="Filter by business or personal">
+                <option value="business" selected>Business</option>
+                <option value="personal">Personal</option>
+                <option value="all">All</option>
+              </select>
+              <select id="expense-category-filter" aria-label="Filter by category">
+                <option value="">All Categories</option>
+                <option value="Materials">Materials</option>
+                <option value="Hardware Purchase">Hardware Purchase</option>
+                <option value="Worker Wages">Worker Wages</option>
+                <option value="Rent">Rent</option>
+                <option value="Electricity">Electricity</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Machine Maintenance">Machine Maintenance</option>
+                <option value="Workshop Maintenance">Workshop Maintenance</option>
+                <option value="Office/Admin">Office/Admin</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <table class="table" id="expenses-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Accounting Month</th>
+                  <th>Scope</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="expenses-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Workers View -->
+          <div id="workers-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Workers</h1>
+              <button class="btn btn-primary" id="add-worker-btn">
+                Add Worker
+              </button>
+            </div>
+            <div class="search-bar">
+              <input
+                type="text"
+                id="worker-search"
+                placeholder="Search workers..."
+                aria-label="Search workers"
+              />
+            </div>
+            <table class="table" id="workers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Wage Type</th>
+                  <th>Default Rate</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="workers-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Worker Detail View -->
+          <div id="view-worker-view" class="content-view hidden">
+            <div class="page-header">
+              <h1 id="vw-title">Worker Details</h1>
+              <div class="page-actions">
+                <button class="btn btn-secondary" id="vw-record-payment-btn">Record Wage Payment</button>
+                <button class="btn btn-secondary" id="vw-edit-btn">Edit</button>
+                <button class="btn btn-secondary" id="vw-back-btn">Back</button>
+              </div>
+            </div>
+            <div class="invoice-detail">
+              <div class="invoice-info">
+                <div class="info-section">
+                  <h3>Worker Information</h3>
+                  <p><strong>Role:</strong> <span id="vw-role"></span></p>
+                  <p><strong>Wage Type:</strong> <span id="vw-wage-type"></span></p>
+                  <p><strong>Default Rate:</strong> <span id="vw-default-rate"></span></p>
+                </div>
+                <div class="info-section">
+                  <h3>Total Wages Paid</h3>
+                  <p class="grand-total"><span id="vw-wages-paid"></span></p>
+                </div>
+              </div>
+              <div class="card">
+                <h3>Wage Payments</h3>
+                <table class="table" id="vw-payments-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vw-payments-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cash Flow View -->
+          <div id="cashflow-view" class="content-view hidden">
+            <div class="page-header">
+              <h1>Cash Flow</h1>
+              <select id="cashflow-scope" aria-label="Business or personal cash flow">
+                <option value="business" selected>Business</option>
+                <option value="personal">Personal</option>
+              </select>
+            </div>
+
+            <div class="cashflow-period-selector">
+              <button class="btn btn-secondary btn-sm active" data-period="today">
+                Today
+              </button>
+              <button class="btn btn-secondary btn-sm" data-period="month">
+                This Month
+              </button>
+              <button class="btn btn-secondary btn-sm" data-period="custom">
+                Custom Range
+              </button>
+            </div>
+            <div id="cashflow-custom-range" class="report-filters hidden">
+              <div class="form-group">
+                <label for="cashflow-from-date">From Date</label>
+                <input type="date" id="cashflow-from-date" />
+              </div>
+              <div class="form-group">
+                <label for="cashflow-to-date">To Date</label>
+                <input type="date" id="cashflow-to-date" />
+              </div>
+              <button class="btn btn-primary" id="apply-cashflow-range-btn">
+                Apply
+              </button>
+            </div>
+
+            <div class="report-cards">
+              <div class="card">
+                <div class="card-value" id="cf-cash-in">Rs. 0.00</div>
+                <div class="card-label">Total Cash In</div>
+              </div>
+              <div class="card">
+                <div class="card-value" id="cf-cash-out">Rs. 0.00</div>
+                <div class="card-label">Total Cash Out</div>
+              </div>
+              <div class="card">
+                <div class="card-value" id="cf-net">Rs. 0.00</div>
+                <div class="card-label">Net Cash Flow</div>
+              </div>
+              <div class="card">
+                <div class="card-value" id="cf-opening-balance">—</div>
+                <div class="card-label">Opening Balance</div>
+              </div>
+              <div class="card">
+                <div class="card-value" id="cf-balance">Rs. 0.00</div>
+                <div class="card-label">Current Balance</div>
+              </div>
+            </div>
+
+            <div class="dashboard-grid">
+              <div class="card">
+                <h3>Income by Source</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cf-income-by-source-body"></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>Expenses by Category</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cf-expenses-by-category-body"></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>By Payment Method</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th>Direction</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cf-by-method-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Transactions</h3>
+              <table class="table" id="cf-transactions-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Direction</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Source</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody id="cf-transactions-body"></tbody>
+              </table>
+            </div>
           </div>
 
           <!-- Reports View -->
@@ -521,30 +1606,559 @@
               </button>
             </div>
 
-            <div class="report-cards">
-              <div class="card">
-                <div class="card-value" id="report-total-revenue">$0.00</div>
-                <div class="card-label">Total Revenue</div>
+            <!-- Report Tabs -->
+            <div class="report-tabs">
+              <button class="report-tab-btn active" data-tab="summary">
+                Summary
+              </button>
+              <button class="report-tab-btn" data-tab="income">
+                Income
+              </button>
+              <button class="report-tab-btn" data-tab="business-personal">
+                Business vs Personal
+              </button>
+              <button class="report-tab-btn" data-tab="revenue">
+                Revenue
+              </button>
+              <button class="report-tab-btn" data-tab="sales">
+                Sales Analytics
+              </button>
+              <button class="report-tab-btn" data-tab="top-products">
+                Top Products
+              </button>
+              <button class="report-tab-btn" data-tab="top-services">
+                Top Services
+              </button>
+              <button class="report-tab-btn" data-tab="stock">
+                Stock Levels
+              </button>
+              <button class="report-tab-btn" data-tab="low-stock">
+                Low Stock Alerts
+              </button>
+              <button class="report-tab-btn" data-tab="outstanding">
+                Outstanding Payments
+              </button>
+              <button class="report-tab-btn" data-tab="projects">
+                Projects
+              </button>
+              <button class="report-tab-btn" data-tab="workshop">
+                Workshop Revenue
+              </button>
+              <button class="report-tab-btn" data-tab="stock-movements">
+                Stock Movements
+              </button>
+              <button class="report-tab-btn" data-tab="purchases">
+                Purchases
+              </button>
+              <button class="report-tab-btn" data-tab="workers">
+                Workers
+              </button>
+              <button class="report-tab-btn" data-tab="data-integrity">
+                Data Integrity
+              </button>
+            </div>
+
+            <!-- Management Summary Tab -->
+            <div id="tab-summary" class="report-tab-content">
+              <p class="helper-text">A simple monthly business snapshot — everything here is pulled from the same figures shown elsewhere in the app, nothing recalculated. Cash flow and profit are shown separately and are never the same number.</p>
+              <h3 class="dashboard-section-title">This Month — Business Cash Flow</h3>
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="summary-business-income">Rs. 0.00</div>
+                  <div class="card-label">Business Income (cash)</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="summary-business-expenses">Rs. 0.00</div>
+                  <div class="card-label">Business Expenses (cash)</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="summary-net-cash-flow">Rs. 0.00</div>
+                  <div class="card-label">Net Business Cash Flow</div>
+                </div>
               </div>
-              <div class="card">
-                <div class="card-value" id="report-invoice-count">0</div>
-                <div class="card-label">Paid Invoices</div>
+              <h3 class="dashboard-section-title">Current Position</h3>
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="summary-receivables">Rs. 0.00</div>
+                  <div class="card-label">Customer Receivables</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="summary-payables">Rs. 0.00</div>
+                  <div class="card-label">Supplier Payables</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="summary-inventory-value">Rs. 0.00</div>
+                  <div class="card-label">Inventory Value (at cost)</div>
+                </div>
+              </div>
+              <h3 class="dashboard-section-title">Project Profitability (accrual — not cash flow)</h3>
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="summary-project-revenue">Rs. 0.00</div>
+                  <div class="card-label">Project Revenue Received</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="summary-project-cost">Rs. 0.00</div>
+                  <div class="card-label">Project Cost Incurred</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="summary-project-profit">Rs. 0.00</div>
+                  <div class="card-label">Project Profit</div>
+                </div>
               </div>
             </div>
 
-            <div class="card">
-              <h3>Revenue Details</h3>
-              <table class="table" id="revenue-table">
-                <thead>
-                  <tr>
-                    <th>Invoice #</th>
-                    <th>Client</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody id="revenue-body"></tbody>
-              </table>
+            <!-- Income Tab -->
+            <div id="tab-income" class="report-tab-content hidden">
+              <div class="cashflow-period-selector" id="income-period-selector">
+                <button class="btn btn-secondary btn-sm active" data-period="today">Today</button>
+                <button class="btn btn-secondary btn-sm" data-period="month">This Month</button>
+                <button class="btn btn-secondary btn-sm" data-period="custom">Custom Range</button>
+                <button class="btn btn-secondary btn-sm" data-period="all">All Time</button>
+              </div>
+              <div id="income-custom-range" class="report-filters hidden">
+                <div class="form-group">
+                  <label for="income-from-date">From Date</label>
+                  <input type="date" id="income-from-date" />
+                </div>
+                <div class="form-group">
+                  <label for="income-to-date">To Date</label>
+                  <input type="date" id="income-to-date" />
+                </div>
+                <button class="btn btn-primary" id="apply-income-range-btn">Apply</button>
+              </div>
+              <p class="helper-text">Cash actually received, prorated by category — a project-linked invoice counts fully as Project Income even if it also contains hardware.</p>
+              <div class="card">
+                <h3>Income by Category</h3>
+                <table class="table">
+                  <thead>
+                    <tr><th>Category</th><th>Amount</th></tr>
+                  </thead>
+                  <tbody id="income-breakdown-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Business vs Personal Tab -->
+            <div id="tab-business-personal" class="report-tab-content hidden">
+              <p class="helper-text">This month, business and personal cash movement side by side — personal figures never feed into any business total elsewhere in the app.</p>
+              <div class="dashboard-grid">
+                <div class="card">
+                  <h3>Business</h3>
+                  <table class="table">
+                    <tbody id="bp-business-body"></tbody>
+                  </table>
+                </div>
+                <div class="card">
+                  <h3>Personal</h3>
+                  <table class="table">
+                    <tbody id="bp-personal-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Revenue Tab -->
+            <div id="tab-revenue" class="report-tab-content hidden">
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="report-product-revenue">
+                    Rs. 0.00
+                  </div>
+                  <div class="card-label">Product Revenue</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="report-service-revenue">
+                    Rs. 0.00
+                  </div>
+                  <div class="card-label">Service Revenue</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="report-total-revenue">
+                    Rs. 0.00
+                  </div>
+                  <div class="card-label">Total Revenue</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="report-invoice-count">0</div>
+                  <div class="card-label">Paid Invoices</div>
+                </div>
+              </div>
+              <div class="card">
+                <h3>Revenue Details</h3>
+                <table class="table" id="revenue-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice #</th>
+                      <th>Client</th>
+                      <th>Date</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="revenue-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Sales Analytics Tab -->
+            <div id="tab-sales" class="report-tab-content hidden">
+              <!-- FIX: Removed inline onclick handlers — wired in app.js -->
+              <div class="report-period-selector">
+                <button class="btn btn-secondary btn-sm" data-period="daily">
+                  Daily
+                </button>
+                <button
+                  class="btn btn-secondary btn-sm active"
+                  data-period="monthly"
+                >
+                  Monthly
+                </button>
+                <button class="btn btn-secondary btn-sm" data-period="yearly">
+                  Yearly
+                </button>
+              </div>
+              <div class="card">
+                <h3>Sales by Period</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Period</th>
+                      <th>Invoice Count</th>
+                      <th>Total Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sales-analytics-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Top Products Tab -->
+            <div id="tab-top-products" class="report-tab-content hidden">
+              <div class="card">
+                <h3>Top Selling Products by Size</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Size</th>
+                      <th>Units Sold</th>
+                      <th>Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-products-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Top Services Tab -->
+            <div id="tab-top-services" class="report-tab-content hidden">
+              <div class="card">
+                <h3>Top Services</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Service</th>
+                      <th>Times Used</th>
+                      <th>Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-services-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Stock Levels Tab -->
+            <div id="tab-stock" class="report-tab-content hidden">
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="report-inventory-cost-value">Rs. 0.00</div>
+                  <div class="card-label">Inventory Value (Cost)</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="report-inventory-retail-value">Rs. 0.00</div>
+                  <div class="card-label">Inventory Value (Retail)</div>
+                </div>
+              </div>
+              <div class="card">
+                <h3>Stock Levels by Variant</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Size</th>
+                      <th>SKU</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>Alert At</th>
+                    </tr>
+                  </thead>
+                  <tbody id="stock-levels-body"></tbody>
+                </table>
+              </div>
+              <div class="card">
+                <h3>Stock Received via Purchases</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Size</th>
+                      <th>Qty Received</th>
+                      <th>Value Received</th>
+                    </tr>
+                  </thead>
+                  <tbody id="stock-received-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Low Stock Tab -->
+            <div id="tab-low-stock" class="report-tab-content hidden">
+              <div class="card">
+                <h3>Low Stock Alerts</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Size</th>
+                      <th>SKU</th>
+                      <th>Current Stock</th>
+                      <th>Alert Threshold</th>
+                    </tr>
+                  </thead>
+                  <tbody id="low-stock-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Outstanding Payments Tab -->
+            <div id="tab-outstanding" class="report-tab-content hidden">
+              <div class="card">
+                <h3>Outstanding Payments</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Invoice #</th>
+                      <th>Client</th>
+                      <th>Total</th>
+                      <th>Paid</th>
+                      <th>Balance Due</th>
+                      <th>Due Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="outstanding-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Projects Tab -->
+            <div id="tab-projects" class="report-tab-content hidden">
+              <div class="filters">
+                <select id="report-project-status-filter" aria-label="Filter by status">
+                  <option value="">All Statuses</option>
+                </select>
+                <select id="report-project-type-filter" aria-label="Filter by type">
+                  <option value="">All Types</option>
+                </select>
+                <label for="report-project-from-date" class="sr-only">From</label>
+                <input type="date" id="report-project-from-date" aria-label="Start date from" />
+                <label for="report-project-to-date" class="sr-only">To</label>
+                <input type="date" id="report-project-to-date" aria-label="Start date to" />
+                <button class="btn btn-secondary btn-sm" id="apply-project-report-filter-btn">Apply</button>
+              </div>
+              <div class="card">
+                <h3>Project Profitability</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Project #</th>
+                      <th>Name</th>
+                      <th>Status</th>
+                      <th>Quoted</th>
+                      <th>Received</th>
+                      <th>Cost</th>
+                      <th>Profit</th>
+                      <th>Margin</th>
+                    </tr>
+                  </thead>
+                  <tbody id="report-projects-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Workshop Revenue Tab -->
+            <div id="tab-workshop" class="report-tab-content hidden">
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="report-workshop-service-revenue">Rs. 0.00</div>
+                  <div class="card-label">Service Revenue</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="report-workshop-hardware-revenue">Rs. 0.00</div>
+                  <div class="card-label">Hardware Revenue</div>
+                </div>
+              </div>
+              <p class="helper-text">Prorated by actual payments received — a partially-paid mixed invoice only counts the portion of cash that's actually come in, split by what it paid for.</p>
+              <div class="dashboard-grid">
+                <div class="card">
+                  <h3>Service Sales by Type</h3>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Service</th>
+                        <th>Unit</th>
+                        <th>Qty Sold</th>
+                        <th>Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody id="report-service-sales-body"></tbody>
+                  </table>
+                </div>
+                <div class="card">
+                  <h3>Hardware Sales by Product</h3>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Variant</th>
+                        <th>Qty Sold</th>
+                        <th>Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody id="report-hardware-sales-body"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card">
+                <h3>Service Sales by Month</h3>
+                <table class="table">
+                  <thead>
+                    <tr><th>Month</th><th>Revenue</th></tr>
+                  </thead>
+                  <tbody id="report-service-sales-by-month-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Stock Movements Tab -->
+            <div id="tab-stock-movements" class="report-tab-content hidden">
+              <div class="filters">
+                <select id="stock-movement-reason-filter" aria-label="Filter by reason">
+                  <option value="">All Reasons</option>
+                  <option value="sale">Sale</option>
+                  <option value="stock_in">Stock In</option>
+                  <option value="stock_out">Stock Out</option>
+                  <option value="adjustment">Adjustment</option>
+                </select>
+                <button class="btn btn-secondary btn-sm" id="apply-stock-movement-filter-btn">Apply</button>
+              </div>
+              <div class="card">
+                <h3>Stock Movement History</h3>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Product</th>
+                      <th>Variant</th>
+                      <th>Change</th>
+                      <th>Before &rarr; After</th>
+                      <th>Reason</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody id="stock-movements-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Purchases Tab -->
+            <div id="tab-purchases" class="report-tab-content hidden">
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="report-total-purchases">Rs. 0.00</div>
+                  <div class="card-label">Total Purchases</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="report-purchases-outstanding">Rs. 0.00</div>
+                  <div class="card-label">Outstanding Supplier Payments</div>
+                </div>
+              </div>
+              <div class="dashboard-grid">
+                <div class="card">
+                  <h3>Purchases by Supplier</h3>
+                  <table class="table">
+                    <thead>
+                      <tr><th>Supplier</th><th>Total</th><th>Paid</th><th>Outstanding</th></tr>
+                    </thead>
+                    <tbody id="report-purchases-by-supplier-body"></tbody>
+                  </table>
+                </div>
+                <div class="card">
+                  <h3>Purchases by Month</h3>
+                  <table class="table">
+                    <thead>
+                      <tr><th>Accounting Month</th><th>Total</th></tr>
+                    </thead>
+                    <tbody id="report-purchases-by-month-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Workers Tab -->
+            <div id="tab-workers" class="report-tab-content hidden">
+              <div class="report-cards">
+                <div class="card">
+                  <div class="card-value" id="report-total-wages">Rs. 0.00</div>
+                  <div class="card-label">Total Wages</div>
+                </div>
+                <div class="card">
+                  <div class="card-value" id="report-wages-paid">Rs. 0.00</div>
+                  <div class="card-label">Wages Paid</div>
+                </div>
+              </div>
+              <div class="dashboard-grid">
+                <div class="card">
+                  <h3>Wages by Worker</h3>
+                  <table class="table">
+                    <thead>
+                      <tr><th>Worker</th><th>Role</th><th>Total</th><th>Paid</th></tr>
+                    </thead>
+                    <tbody id="report-wages-by-worker-body"></tbody>
+                  </table>
+                </div>
+                <div class="card">
+                  <h3>Wages by Month</h3>
+                  <table class="table">
+                    <thead>
+                      <tr><th>Accounting Month</th><th>Total</th></tr>
+                    </thead>
+                    <tbody id="report-wages-by-month-body"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card">
+                <h3>Project-Linked Labour Cost</h3>
+                <table class="table">
+                  <thead>
+                    <tr><th>Project #</th><th>Name</th><th>Labour Cost</th></tr>
+                  </thead>
+                  <tbody id="report-project-labour-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Data Integrity Tab -->
+            <div id="tab-data-integrity" class="report-tab-content hidden">
+              <p class="helper-text">Runs live checks against the actual database — no separate calculation, just verification that everything else on this page is internally consistent.</p>
+              <button class="btn btn-secondary btn-sm" id="run-data-integrity-btn">Run Checks</button>
+              <div class="card">
+                <table class="table">
+                  <thead>
+                    <tr><th>Check</th><th>Status</th><th>Details</th></tr>
+                  </thead>
+                  <tbody id="data-integrity-body"></tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -577,7 +2191,49 @@
                 </button>
               </div>
             </form>
-            <div class="card" style="margin-top: 20px">
+
+            <div class="card settings-password-card">
+              <h3>Workshop Defaults</h3>
+              <form id="workshop-settings-form" class="form">
+                <div class="form-group">
+                  <label for="default-walkin-client">Default Walk-in Customer</label>
+                  <select id="default-walkin-client"></select>
+                  <small class="helper-text">Auto-selected as the client on every new invoice.</small>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="default-payment-method">Default Payment Method</label>
+                    <select id="default-payment-method">
+                      <option value="cash">Cash</option>
+                      <option value="check">Check</option>
+                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="card">Card</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="invoice-prefix-setting">Invoice Prefix</label>
+                    <input type="text" id="invoice-prefix-setting" placeholder="INV" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="currency-symbol-setting">Currency Symbol</label>
+                    <input type="text" id="currency-symbol-setting" placeholder="Rs." />
+                  </div>
+                  <div class="form-group">
+                    <label for="tax-rate-setting">Default Tax Rate (%)</label>
+                    <input type="number" id="tax-rate-setting" min="0" max="100" step="0.01" />
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">
+                    Save Workshop Defaults
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="card settings-password-card">
               <h3>Change Password</h3>
               <form id="change-password-form" class="form">
                 <div class="form-group">
@@ -592,7 +2248,11 @@
                   <label for="confirm-password">Confirm New Password</label>
                   <input type="password" id="confirm-password" required />
                 </div>
-                <div id="password-error" class="error-message"></div>
+                <div
+                  id="password-error"
+                  class="error-message"
+                  role="alert"
+                ></div>
                 <div class="form-actions">
                   <button type="submit" class="btn btn-primary">
                     Change Password
@@ -600,16 +2260,58 @@
                 </div>
               </form>
             </div>
+
+            <div class="card settings-password-card">
+              <h3>Backup &amp; Restore</h3>
+              <p class="helper-text">A backup is a complete, consistent snapshot of the database — all customers, invoices, payments, projects, expenses, and inventory. Restoring replaces everything currently in the app with what's in the chosen backup file.</p>
+
+              <div class="form-group">
+                <button type="button" class="btn btn-primary" id="create-backup-btn">
+                  Choose Destination &amp; Create Backup
+                </button>
+                <div id="backup-status" class="helper-text"></div>
+              </div>
+
+              <div class="form-group">
+                <button type="button" class="btn btn-secondary" id="restore-backup-btn">
+                  Restore from Backup File…
+                </button>
+                <div id="restore-status" class="helper-text"></div>
+              </div>
+
+              <div class="card" style="margin-top: 12px;">
+                <h3>Automatic Safety Backups</h3>
+                <p class="helper-text">Created automatically right before every restore, so the state you're replacing is never lost.</p>
+                <table class="table">
+                  <thead>
+                    <tr><th>File</th><th>Size</th><th>Created</th></tr>
+                  </thead>
+                  <tbody id="auto-backups-body"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </main>
       </div>
 
       <!-- Modal Container -->
-      <div id="modal-overlay" class="modal-overlay hidden">
+      <div
+        id="modal-overlay"
+        class="modal-overlay hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
         <div class="modal" id="modal">
           <div class="modal-header">
             <h2 id="modal-title">Modal</h2>
-            <button class="modal-close" id="modal-close">&times;</button>
+            <button
+              class="modal-close"
+              id="modal-close"
+              aria-label="Close modal"
+            >
+              &times;
+            </button>
           </div>
           <div class="modal-body" id="modal-body"></div>
           <div class="modal-footer" id="modal-footer"></div>
@@ -617,6 +2319,6 @@
       </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <script type="module" src="js/app.js"></script>
   </body>
 </html>

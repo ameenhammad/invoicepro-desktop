@@ -1,1 +1,18 @@
 node_modules
+dist
+
+# Runtime data — the app always writes to Electron's userData directory,
+# never here. Anything under data/ is a stray dev-time artifact.
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs — production logs go to userData/logs; this only catches local runs
+# that don't override electron-log's path.
+logs/
+*.log
+
+# Generated at build/runtime, never source
+*.pdf

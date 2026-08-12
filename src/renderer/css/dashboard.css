@@ -3,19 +3,67 @@
   height: 100vh;
 }
 
-/* Sidebar */
+/* Collapsible Sidebar */
 #sidebar {
-  width: 220px;
+  width: 240px;
   background-color: #1e293b;
   color: #e2e8f0;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+
+#sidebar.collapsed {
+  width: 70px;
+}
+
+#sidebar.collapsed .sidebar-header h2,
+#sidebar.collapsed .nav-text,
+#sidebar.collapsed .sidebar-footer .nav-item span {
+  display: none;
+}
+
+#sidebar.collapsed .nav-menu {
+  padding: 12px 8px;
+}
+
+#sidebar.collapsed .nav-item {
+  padding: 12px;
+  justify-content: center;
+}
+
+#sidebar.collapsed .sidebar-footer {
+  padding: 16px 8px;
+}
+
+#sidebar.collapsed #logout-btn {
+  padding: 12px;
+  width: auto;
 }
 
 .sidebar-header {
   padding: 20px;
   border-bottom: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.sidebar-toggle:hover {
+  background-color: #334155;
+  color: #e2e8f0;
 }
 
 .sidebar-header h2 {
@@ -35,7 +83,9 @@
 }
 
 .nav-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 10px 20px;
   color: #94a3b8;
   text-decoration: none;
@@ -58,13 +108,21 @@
   color: white;
 }
 
+.nav-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
 .sidebar-footer {
   padding: 16px 20px;
   border-top: 1px solid #334155;
 }
 
 .sidebar-footer .nav-item {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   padding: 6px 0;
   margin-right: 16px;
   font-size: 13px;
@@ -83,6 +141,79 @@
   background-color: #f8fafc;
 }
 
+/* Dashboard Action Buttons */
+.dashboard-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.dashboard-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+  margin: 24px 0 12px;
+}
+
+.dashboard-section-title:first-of-type {
+  margin-top: 0;
+}
+
+/* Cash Flow period selector — same shape as .report-period-selector */
+.cashflow-period-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.cashflow-period-selector .btn.active {
+  background-color: #2563eb;
+  color: white;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background-color: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.action-btn:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn.action-btn-primary {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: white;
+}
+
+.action-btn.action-btn-primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  color: white;
+}
+
+.action-icon {
+  font-size: 18px;
+  font-weight: 700;
+}
+
 /* Dashboard cards */
 .dashboard-cards {
   display: grid;
@@ -99,6 +230,10 @@
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.card.alert-card {
+  border-left: 4px solid #dc2626;
 }
 
 .card-icon {
@@ -127,6 +262,10 @@
 
 .card-icon-clients {
   background-color: #7c3aed;
+}
+
+.card-icon-alert {
+  background-color: #dc2626;
 }
 
 .card-content {
@@ -160,6 +299,69 @@
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Report tabs */
+.report-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.report-tab-btn {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.report-tab-btn:hover {
+  color: #2563eb;
+  background-color: #f1f5f9;
+}
+
+.report-tab-btn.active {
+  color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.report-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #2563eb;
+}
+
+.report-tab-content {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.report-period-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.report-period-selector .btn.active {
+  background-color: #2563eb;
+  color: white;
 }
 
 /* Report cards */
@@ -289,7 +491,7 @@
 }
 
 .totals-row span:last-child {
-  width: 120px;
+  width: 150px;
   font-weight: 500;
 }
 
@@ -298,4 +500,76 @@
   font-weight: 700;
   border-top: 2px solid #1e293b !important;
   padding-top: 12px !important;
+}
+
+/* Variant rows in product modal */
+#variants-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.variant-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 0.9fr 0.9fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  background-color: #f8fafc;
+  border-radius: 6px;
+}
+
+.variant-row input {
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.variant-row input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.variant-row input[readonly] {
+  background-color: #eef1f5;
+  color: #64748b;
+}
+
+.variant-row-header {
+  background-color: transparent;
+  padding: 0 8px;
+}
+
+.variant-row-header span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Adjust-stock mini-row nested under each variant */
+.variant-adjust-row {
+  grid-template-columns: 1.4fr 1fr 0.8fr 1.2fr auto 1fr;
+  background-color: #fff;
+  border: 1px dashed #d1d5db;
+  margin-top: -4px;
+}
+
+.variant-adjust-row select {
+  padding: 7px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.adjust-result {
+  font-size: 12px;
+}
+
+.text-muted {
+  color: #64748b;
+  font-size: 12px;
 }

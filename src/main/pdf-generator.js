@@ -1,11 +1,11 @@
-const PDFDocument = require("pdfkit");
-const fs = require("fs");
-const path = require("path");
-const log = require("electron-log");
+import PDFDocument from "pdfkit";
+import log from "electron-log";
+import { formatCurrency, formatDate as formatDateShort } from "../shared/utils.js";
 
-function generateInvoicePdf(invoice) {
+export function generateInvoicePdf(invoice) {
   return new Promise((resolve, reject) => {
     try {
+      const fmt = (amount) => formatCurrency(amount, invoice.currencySymbol);
       const doc = new PDFDocument({ margin: 50, size: "A4" });
       const chunks = [];
 
@@ -16,40 +16,102 @@ function generateInvoicePdf(invoice) {
       });
       doc.on("error", reject);
 
-      // Header
+      const pageWidth = 595.28;
+      const leftMargin = 50;
+      const rightMargin = 50;
+      const contentWidth = pageWidth - leftMargin - rightMargin;
+
+      // ========== HEADER ==========
+      // FIX: Draw company info (left) and invoice details (right) using
+      // absolute coordinates so they never interfere with each other.
+
+      // -- Left side: Company info --
       doc
-        .fontSize(24)
+        .fillColor("#1a1a1a")
+        .fontSize(16)
         .font("Helvetica-Bold")
-        .text("INVOICE", 50, 50, { align: "right" });
+        .text(invoice.company_name || "My Company", leftMargin, 50, {
+          width: 260,
+        });
+
+      doc.fillColor("#555555").fontSize(9).font("Helvetica");
+      let companyY = 72;
+      if (invoice.company_address) {
+        const addr = invoice.company_address.replace(/\n/g, ", ");
+        doc.text(addr, leftMargin, companyY, { width: 260 });
+        companyY = doc.y;
+      }
+      if (invoice.company_phone) {
+        doc.text(`Phone: ${invoice.company_phone}`, leftMargin, companyY, {
+          width: 260,
+        });
+        companyY = doc.y;
+      }
+      if (invoice.company_email) {
+        doc.text(`Email: ${invoice.company_email}`, leftMargin, companyY, {
+          width: 260,
+        });
+      }
+
+      // -- Right side: Invoice title + details (absolute Y positions) --
       doc
-        .fontSize(10)
-        .font("Helvetica")
-        .text(`Invoice #: ${invoice.invoice_number}`, 50, 80, {
+        .fillColor("#1a1a1a")
+        .fontSize(26)
+        .font("Helvetica-Bold")
+        .text("INVOICE", leftMargin, 50, {
+          width: contentWidth,
           align: "right",
         });
-      doc.text(`Issue Date: ${formatDate(invoice.issue_date)}`, {
+
+      // FIX: Each detail line uses an explicit absolute Y so they stack
+      // independently of the left-side company block
+      const detailX = leftMargin + 260;
+      const detailWidth = contentWidth - 260;
+      doc.fillColor("#555555").fontSize(10).font("Helvetica");
+      doc.text(`Invoice #: ${invoice.invoice_number || "N/A"}`, detailX, 82, {
+        width: detailWidth,
         align: "right",
       });
-      doc.text(`Due Date: ${formatDate(invoice.due_date)}`, { align: "right" });
-      doc.text(`Status: ${invoice.status.toUpperCase()}`, { align: "right" });
+      doc.text(`Issue Date: ${formatDate(invoice.issue_date)}`, detailX, 97, {
+        width: detailWidth,
+        align: "right",
+      });
+      doc.text(`Due Date: ${formatDate(invoice.due_date)}`, detailX, 112, {
+        width: detailWidth,
+        align: "right",
+      });
+      doc.text(
+        `Status: ${(invoice.status || "draft").toUpperCase()}`,
+        detailX,
+        127,
+        { width: detailWidth, align: "right" },
+      );
 
-      // Company info
+      // ========== DIVIDER ==========
+      const headerBottom = Math.max(doc.y, 145);
       doc
-        .fontSize(14)
-        .font("Helvetica-Bold")
-        .text(invoice.company_name || "My Business", 50, 50);
-      doc.fontSize(9).font("Helvetica");
-      if (invoice.company_address) doc.text(invoice.company_address);
-      if (invoice.company_phone) doc.text(`Phone: ${invoice.company_phone}`);
-      if (invoice.company_email) doc.text(`Email: ${invoice.company_email}`);
+        .moveTo(leftMargin, headerBottom + 8)
+        .lineTo(pageWidth - rightMargin, headerBottom + 8)
+        .strokeColor("#dddddd")
+        .stroke();
 
-      // Bill To
-      const billToY = Math.max(doc.y, 150);
-      doc.fontSize(10).font("Helvetica-Bold").text("Bill To:", 50, billToY);
-      doc.font("Helvetica").fontSize(10);
-      doc.text(invoice.client_name);
-      if (invoice.client_address_line1) doc.text(invoice.client_address_line1);
-      if (invoice.client_address_line2) doc.text(invoice.client_address_line2);
+      // ========== BILL TO ==========
+      const billToY = headerBottom + 22;
+      doc
+        .fillColor("#1a1a1a")
+        .fontSize(11)
+        .font("Helvetica-Bold")
+        .text("Bill To:", leftMargin, billToY);
+      doc.fillColor("#333333").fontSize(10).font("Helvetica");
+      doc.text(invoice.client_name || "N/A", leftMargin, doc.y, { width: 260 });
+      if (invoice.client_address_line1)
+        doc.text(invoice.client_address_line1, leftMargin, doc.y, {
+          width: 260,
+        });
+      if (invoice.client_address_line2)
+        doc.text(invoice.client_address_line2, leftMargin, doc.y, {
+          width: 260,
+        });
       if (
         invoice.client_city ||
         invoice.client_state ||
@@ -57,147 +119,234 @@ function generateInvoicePdf(invoice) {
       ) {
         doc.text(
           `${invoice.client_city || ""} ${invoice.client_state || ""} ${invoice.client_postal_code || ""}`.trim(),
+          leftMargin,
+          doc.y,
+          { width: 260 },
         );
       }
-      if (invoice.client_country) doc.text(invoice.client_country);
-      if (invoice.client_email) doc.text(`Email: ${invoice.client_email}`);
-      if (invoice.client_phone) doc.text(`Phone: ${invoice.client_phone}`);
+      if (invoice.client_country)
+        doc.text(invoice.client_country, leftMargin, doc.y, { width: 260 });
+      if (invoice.client_email)
+        doc.text(`Email: ${invoice.client_email}`, leftMargin, doc.y, {
+          width: 260,
+        });
+      if (invoice.client_phone)
+        doc.text(`Phone: ${invoice.client_phone}`, leftMargin, doc.y, {
+          width: 260,
+        });
 
-      // Line items table
+      // ========== LINE ITEMS TABLE ==========
+      const drawTableHeader = (y) => {
+        doc.rect(leftMargin, y, contentWidth, 22).fill("#2c3e50");
+        doc.fill("#ffffff").font("Helvetica-Bold").fontSize(9);
+        doc.text("Description", colX[0] + 5, y + 6, {
+          width: colWidths[0] - 5,
+        });
+        doc.text("Variant", colX[1], y + 6, {
+          width: colWidths[1],
+          align: "center",
+        });
+        doc.text("Qty", colX[2], y + 6, {
+          width: colWidths[2],
+          align: "center",
+        });
+        doc.text("Unit Price", colX[3], y + 6, {
+          width: colWidths[3],
+          align: "right",
+        });
+        doc.text("Total", colX[4], y + 6, {
+          width: colWidths[4],
+          align: "right",
+        });
+        return y + 22;
+      };
+
+      const colWidths = [220, 60, 70, 75, 75];
+      const colX = [
+        leftMargin,
+        leftMargin + 225,
+        leftMargin + 285,
+        leftMargin + 355,
+        leftMargin + 430,
+      ];
+
       let tableY = doc.y + 20;
-      const colWidths = [280, 60, 80, 70];
-      const colX = [50, 330, 390, 460];
+      tableY = drawTableHeader(tableY);
 
-      // Table header
-      doc.rect(50, tableY, 500, 20).fill("#f0f0f0");
-      doc.fill("#000000");
-      doc.font("Helvetica-Bold").fontSize(9);
-      doc.text("Description", colX[0] + 5, tableY + 5);
-      doc.text("Qty", colX[1], tableY + 5, {
-        width: colWidths[1],
-        align: "center",
-      });
-      doc.text("Unit Price", colX[2], tableY + 5, {
-        width: colWidths[2],
-        align: "right",
-      });
-      doc.text("Total", colX[3], tableY + 5, {
-        width: colWidths[3],
-        align: "right",
-      });
-
-      tableY += 20;
       doc.font("Helvetica").fontSize(9);
 
       if (invoice.items && invoice.items.length > 0) {
-        for (const item of invoice.items) {
+        for (let i = 0; i < invoice.items.length; i++) {
+          const item = invoice.items[i];
           const lineTotal = item.line_total || item.quantity * item.unit_price;
-          doc.text(
-            item.description || item.description_text || "",
-            colX[0] + 5,
-            tableY,
-            { width: colWidths[0] - 5 },
-          );
-          doc.text(String(item.quantity || 1), colX[1], tableY, {
+          const isAlternate = i % 2 === 1;
+
+          if (isAlternate) {
+            doc.rect(leftMargin, tableY - 2, contentWidth, 18).fill("#f8f9fa");
+          }
+
+          doc.fillColor("#333333").font("Helvetica").fontSize(9);
+          const descText = item.description || item.product_name || "N/A";
+          doc.text(descText, colX[0] + 5, tableY, { width: colWidths[0] - 5 });
+          doc.text(item.variant_name || "-", colX[1], tableY, {
             width: colWidths[1],
             align: "center",
           });
-          doc.text(formatCurrency(item.unit_price), colX[2], tableY, {
+          doc.text(String(item.quantity || 1), colX[2], tableY, {
             width: colWidths[2],
+            align: "center",
+          });
+          doc.text(fmt(item.unit_price), colX[3], tableY, {
+            width: colWidths[3],
             align: "right",
           });
-          doc.text(formatCurrency(lineTotal), colX[3], tableY, {
-            width: colWidths[3],
+          doc.text(fmt(lineTotal), colX[4], tableY, {
+            width: colWidths[4],
             align: "right",
           });
 
           tableY += 18;
 
-          // Page break if needed
+          // FIX: Page break redraws table headers on new page
           if (tableY > 700) {
             doc.addPage();
-            tableY = 50;
+            tableY = 70;
+            tableY = drawTableHeader(tableY); // FIX: redraw headers after page break
+            doc.font("Helvetica").fontSize(9);
           }
         }
       }
 
-      // Totals
+      // ========== TOTALS ==========
       tableY += 10;
-      doc.moveTo(350, tableY).lineTo(550, tableY).stroke();
+      doc
+        .moveTo(leftMargin + 280, tableY)
+        .lineTo(leftMargin + contentWidth, tableY)
+        .strokeColor("#cccccc")
+        .stroke();
 
       tableY += 10;
-      doc.text("Subtotal:", 330, tableY, { width: 120, align: "right" });
-      doc.text(formatCurrency(invoice.subtotal), 450, tableY, {
+      doc.fillColor("#333333").font("Helvetica").fontSize(10);
+
+      doc.text("Subtotal:", leftMargin + 230, tableY, {
+        width: 120,
+        align: "right",
+      });
+      doc.text(fmt(invoice.subtotal), leftMargin + 370, tableY, {
         width: 100,
         align: "right",
       });
 
       if (invoice.discount_amount > 0) {
-        tableY += 15;
-        doc.text(`Discount (${invoice.discount_percent || 0}%):`, 330, tableY, {
-          width: 120,
-          align: "right",
-        });
-        doc.text(`-${formatCurrency(invoice.discount_amount)}`, 450, tableY, {
-          width: 100,
-          align: "right",
-        });
+        tableY += 16;
+        doc.text(
+          `Discount (${invoice.discount_percent || 0}%):`,
+          leftMargin + 230,
+          tableY,
+          { width: 120, align: "right" },
+        );
+        doc.text(
+          `-${fmt(invoice.discount_amount)}`,
+          leftMargin + 370,
+          tableY,
+          { width: 100, align: "right" },
+        );
       }
 
       if (invoice.tax_amount > 0) {
-        tableY += 15;
-        doc.text(`Tax (${invoice.tax_percent || 0}%):`, 330, tableY, {
-          width: 120,
-          align: "right",
-        });
-        doc.text(formatCurrency(invoice.tax_amount), 450, tableY, {
+        tableY += 16;
+        doc.text(
+          `Tax (${invoice.tax_percent || 0}%):`,
+          leftMargin + 230,
+          tableY,
+          { width: 120, align: "right" },
+        );
+        doc.text(fmt(invoice.tax_amount), leftMargin + 370, tableY, {
           width: 100,
           align: "right",
         });
       }
 
-      tableY += 15;
-      doc.rect(340, tableY, 210, 18).fill("#e0e0e0");
-      doc.fill("#000000");
-      doc.font("Helvetica-Bold").fontSize(10);
-      doc.text("Grand Total:", 350, tableY + 4, { width: 90 });
-      doc.text(formatCurrency(invoice.total), 450, tableY + 4, {
+      tableY += 16;
+      doc
+        .rect(leftMargin + 280, tableY, contentWidth - 230, 24)
+        .fill("#2c3e50");
+      doc.fill("#ffffff").font("Helvetica-Bold").fontSize(11);
+      doc.text("Grand Total:", leftMargin + 290, tableY + 6, { width: 90 });
+      doc.text(fmt(invoice.total), leftMargin + 370, tableY + 6, {
         width: 100,
         align: "right",
       });
 
-      // Payments received
+      // ========== PAYMENTS RECEIVED ==========
       if (invoice.totalPaid > 0) {
-        doc.font("Helvetica").fontSize(9);
-        tableY += 25;
-        doc.text(`Payments Received: ${formatCurrency(invoice.totalPaid)}`, {
-          align: "right",
-        });
+        tableY += 32;
+        doc.font("Helvetica").fontSize(9).fillColor("#333333");
+        doc.text(
+          `Payments Received: ${fmt(invoice.totalPaid)}`,
+          leftMargin,
+          tableY,
+          { width: contentWidth, align: "right" },
+        );
+
+        // Most invoices have exactly one payment (paid in full, on the
+        // spot); list distinct methods if more than one was used.
+        const methods = [
+          ...new Set((invoice.payments || []).map((p) => p.method).filter(Boolean)),
+        ].map((m) => m.split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" "));
+        if (methods.length > 0) {
+          tableY += 14;
+          doc.text(
+            `Payment Method: ${methods.join(", ")}`,
+            leftMargin,
+            tableY,
+            { width: contentWidth, align: "right" },
+          );
+        }
+
         const remaining = invoice.total - invoice.totalPaid;
-        if (remaining > 0) {
-          doc.text(`Balance Due: ${formatCurrency(remaining)}`, {
-            align: "right",
-          });
+        if (remaining > 0.005) {
+          // FIX: use small epsilon to avoid floating point false positives
+          tableY += 14;
+          doc.text(
+            `Balance Due: ${fmt(remaining)}`,
+            leftMargin,
+            tableY,
+            { width: contentWidth, align: "right" },
+          );
         }
       }
 
-      // Notes
+      // ========== NOTES ==========
       if (invoice.notes) {
         tableY += 40;
-        doc.font("Helvetica-Bold").fontSize(10).text("Notes:", 50, tableY);
         doc
+          .fillColor("#1a1a1a")
+          .font("Helvetica-Bold")
+          .fontSize(10)
+          .text("Notes:", leftMargin, tableY);
+        doc
+          .fillColor("#555555")
           .font("Helvetica")
           .fontSize(9)
-          .text(invoice.notes, 50, tableY + 15, { width: 500 });
+          .text(invoice.notes, leftMargin, tableY + 15, {
+            width: contentWidth,
+          });
+        tableY = doc.y;
       }
 
-      // Footer
-      const footerY = 780;
-      doc.fontSize(8).fill("#888888");
-      doc.text("Thank you for your business!", 50, footerY, {
-        align: "center",
-        width: 500,
-      });
+      // ========== FOOTER ==========
+      // FIX: Only draw footer if there's space; otherwise it lands on current page bottom
+      const footerY = doc.page.height - 40;
+      if (doc.y < footerY - 20) {
+        doc
+          .fontSize(8)
+          .fillColor("#888888")
+          .text("Thank you for your business!", leftMargin, footerY, {
+            align: "center",
+            width: contentWidth,
+          });
+      }
 
       doc.end();
     } catch (error) {
@@ -208,20 +357,5 @@ function generateInvoicePdf(invoice) {
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return formatDateShort(dateStr) || "N/A";
 }
-
-function formatCurrency(amount) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount || 0);
-}
-
-module.exports = { generateInvoicePdf };

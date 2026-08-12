@@ -1,13 +1,31 @@
-const bcrypt = require("bcryptjs");
-const log = require("electron-log");
-const { SESSION_EXPIRY_MS, DEFAULT_ADMIN } = require("../shared/constants");
-const { generateSessionToken } = require("../shared/utils");
+import bcrypt from "bcryptjs";
+import log from "electron-log";
+import { randomBytes } from "crypto";
+import { SESSION_EXPIRY_MS } from "../shared/constants.js";
+
+function generateSessionToken() {
+  return randomBytes(32).toString("hex");
+}
 
 // In-memory session store
 const sessions = new Map();
 
-function login(db, username, password) {
+// Helper to map DB user row to camelCase
+function mapUser(user) {
+  return {
+    id: user.id,
+    username: user.username,
+    companyName: user.company_name,
+    companyAddress: user.company_address,
+    companyPhone: user.company_phone,
+    companyEmail: user.company_email,
+    logoPath: user.logo_path,
+  };
+}
+
+export function login(db, username, password) {
   const user = db.get("SELECT * FROM users WHERE username = ?", [username]);
+
   if (!user) {
     return {
       success: false,
@@ -19,6 +37,7 @@ function login(db, username, password) {
   }
 
   const valid = bcrypt.compareSync(password, user.password_hash);
+
   if (!valid) {
     return {
       success: false,
@@ -29,7 +48,6 @@ function login(db, username, password) {
     };
   }
 
-  // Generate session token
   const token = generateSessionToken();
   const expiry = Date.now() + SESSION_EXPIRY_MS;
 
@@ -45,28 +63,20 @@ function login(db, username, password) {
     success: true,
     data: {
       token,
-      user: {
-        id: user.id,
-        username: user.username,
-        companyName: user.company_name,
-        companyAddress: user.company_address,
-        companyPhone: user.company_phone,
-        companyEmail: user.company_email,
-        logoPath: user.logo_path,
-      },
+      user: mapUser(user),
     },
   };
 }
 
-function logout(token) {
-  if (sessions.has(token)) {
+export function logout(token) {
+  if (token && sessions.has(token)) {
     sessions.delete(token);
     log.info("User logged out");
   }
   return { success: true };
 }
 
-function validateSession(token) {
+export function validateSession(token) {
   const session = sessions.get(token);
   if (!session) {
     return { valid: false };
@@ -75,13 +85,13 @@ function validateSession(token) {
     sessions.delete(token);
     return { valid: false };
   }
-  // Refresh expiry
+  // Refresh expiry on activity
   session.expiry = Date.now() + SESSION_EXPIRY_MS;
   sessions.set(token, session);
   return { valid: true, userId: session.userId };
 }
 
-function getSettings(db, userId) {
+export function getSettings(db, userId) {
   const user = db.get(
     "SELECT id, username, company_name, company_address, company_phone, company_email, logo_path FROM users WHERE id = ?",
     [userId],
@@ -92,10 +102,11 @@ function getSettings(db, userId) {
       error: { code: "NOT_FOUND", message: "User not found" },
     };
   }
-  return { success: true, data: user };
+  // FIX: return camelCase mapped user, consistent with login response
+  return { success: true, data: mapUser(user) };
 }
 
-function updateSettings(db, userId, settings) {
+export function updateSettings(db, userId, settings) {
   const allowedFields = [
     "company_name",
     "company_address",
@@ -123,14 +134,46 @@ function updateSettings(db, userId, settings) {
   values.push(userId);
   db.run(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`, values);
 
+  // FIX: getSettings now returns camelCase, so this is consistent
   return { success: true, data: getSettings(db, userId).data };
 }
 
-module.exports = {
-  login,
-  logout,
-  validateSession,
-  getSettings,
-  updateSettings,
-  sessions,
-};
+export function changePassword(db, userId, currentPassword, newPassword) {
+  // FIX: validate newPassword before hashing
+  if (!newPassword || newPassword.trim().length === 0) {
+    return {
+      success: false,
+      error: {
+        code: "INVALID_PASSWORD",
+        message: "New password cannot be empty",
+      },
+    };
+  }
+
+  const user = db.get("SELECT * FROM users WHERE id = ?", [userId]);
+  if (!user) {
+    return {
+      success: false,
+      error: { code: "NOT_FOUND", message: "User not found" },
+    };
+  }
+
+  const valid = bcrypt.compareSync(currentPassword, user.password_hash);
+  if (!valid) {
+    return {
+      success: false,
+      error: {
+        code: "INVALID_PASSWORD",
+        message: "Current password is incorrect",
+      },
+    };
+  }
+
+  const hash = bcrypt.hashSync(newPassword, 12);
+  db.run("UPDATE users SET password_hash = ? WHERE id = ?", [hash, userId]);
+
+  log.info("Password changed for user:", userId);
+  return { success: true };
+}
+
+export { sessions };

@@ -8,10 +8,15 @@ directories:
 
 files:
   - src/**/*
-  - data/**/*
   - package.json
 
 asar: true
+# better-sqlite3's compiled .node addon can't be dlopen'd from inside the
+# asar archive — Node/Electron can transparently read regular files out of
+# an asar, but not mmap a native binary out of it. Without this, the
+# packaged app fails at startup the first time it opens the database.
+asarUnpack:
+  - "**/node_modules/better-sqlite3/**/*"
 compression: normal
 
 win:
@@ -46,9 +51,3 @@ nsis:
   installerIcon: build/icon.ico
   uninstallerIcon: build/icon.ico
   installerHeaderIcon: build/icon.ico
-
-extraResources:
-  - from: data
-    to: data
-    filter:
-      - "**/*"

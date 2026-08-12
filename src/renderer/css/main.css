@@ -265,9 +265,81 @@ body {
   color: #065f46;
 }
 
+.status-badge.unpaid {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
 .status-badge.cancelled {
   background-color: #fee2e2;
   color: #991b1b;
+}
+
+.status-badge.project-status-quotation {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.status-badge.project-status-confirmed {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.project-status-in_progress {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.project-status-completed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.project-status-delivered {
+  background-color: #ede9fe;
+  color: #5b21b6;
+}
+
+.status-badge.project-status-cancelled {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+
+.badge-success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-muted {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400 !important;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
 }
 
 /* Scrollbar */
