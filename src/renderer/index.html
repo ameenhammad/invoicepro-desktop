@@ -1121,10 +1121,6 @@
                   <label for="invoice-issue-date">Issue Date</label>
                   <input type="date" id="invoice-issue-date" />
                 </div>
-                <div class="form-group">
-                  <label for="invoice-due-date">Due Date</label>
-                  <input type="date" id="invoice-due-date" />
-                </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -1195,17 +1191,10 @@
                       step="0.01"
                     />
                   </div>
-                  <div class="form-group">
-                    <label for="invoice-tax">Tax (%)</label>
-                    <input
-                      type="number"
-                      id="invoice-tax"
-                      value="0"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                    />
-                  </div>
+                  <!-- Tax % is no longer editable here — it's applied silently using
+                       the default tax rate from Settings. The computed Tax total
+                       still shows below, in Grand Total math, same as before. -->
+                  <input type="hidden" id="invoice-tax" value="0" />
                 </div>
                 <div class="totals-display">
                   <div class="totals-row">
@@ -1239,6 +1228,20 @@
                   id="save-invoice-btn"
                 >
                   Save Invoice
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  id="save-print-invoice-btn"
+                >
+                  Save &amp; Print
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  id="save-download-pdf-btn"
+                >
+                  Download PDF
                 </button>
               </div>
             </form>

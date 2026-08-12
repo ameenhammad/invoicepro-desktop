@@ -167,12 +167,13 @@ export async function showCreateInvoiceView() {
     ? numResult.data
     : "";
 
-  // Most jobs are walk-in and paid the same day, so Issue/Due Date, Status,
-  // and Payment Method all default to the fast path — every field stays
+  // Most jobs are walk-in and paid the same day, so Issue Date, Status, and
+  // Payment Method all default to the fast path — every field stays
   // editable for the less common job that needs something different.
+  // Due Date isn't shown on the form at all anymore — it's silently kept
+  // equal to Issue Date at save time (see the submit handler below).
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("invoice-issue-date").value = today;
-  document.getElementById("invoice-due-date").value = today;
   document.getElementById("invoice-discount-type").value = "percent";
   document.getElementById("invoice-discount").value = "0";
   updateDiscountLabel();
@@ -524,74 +525,114 @@ function calculateTotals() {
     formatCurrency(total);
 }
 
+// Shared by all three save actions (Save Invoice, Save & Print, Download
+// PDF) — validates stock and builds the create payload. Returns null (after
+// alerting) if validation fails, so callers can just bail out on a falsy
+// return instead of duplicating the checks three times.
+async function buildInvoicePayload() {
+  if (!document.getElementById("invoice-client").value) {
+    alert("Please select a client");
+    return null;
+  }
+
+  // Stock validation
+  for (const item of lineItems) {
+    if (item.variant_id && item.quantity > 0) {
+      const result = await window.api.products.getVariants(
+        state.sessionToken,
+        item.product_id,
+      );
+      if (result.success) {
+        const variant = result.data.find((v) => v.id === item.variant_id);
+        if (variant && variant.quantity < item.quantity) {
+          alert(
+            `Insufficient stock for ${item.description} (${item.variant_name}). Available: ${variant.quantity}`,
+          );
+          return null;
+        }
+      }
+    }
+  }
+
+  const validItems = lineItems.filter(
+    (i) => i.description || i.product_id || i.service_id,
+  );
+  validItems.forEach((item) => {
+    if (!item.product_id && item.description) {
+      item.line_total = item.quantity * item.unit_price;
+    }
+  });
+
+  const projectValue = document.getElementById("invoice-project").value;
+  const discountType =
+    document.getElementById("invoice-discount-type").value === "amount"
+      ? "amount"
+      : "percent";
+  const discountInput =
+    parseFloat(document.getElementById("invoice-discount").value) || 0;
+  const issueDate = document.getElementById("invoice-issue-date").value;
+
+  return {
+    client_id: parseInt(document.getElementById("invoice-client").value),
+    issue_date: issueDate,
+    // Due Date isn't on the form — walk-in jobs are same-day, so it just
+    // mirrors Issue Date instead of asking for a separate value.
+    due_date: issueDate,
+    status: document.getElementById("invoice-status").value,
+    payment_method: document.getElementById("invoice-payment-method").value,
+    discount_type: discountType,
+    discount_percent: discountType === "percent" ? discountInput : 0,
+    discount_amount: discountType === "amount" ? discountInput : 0,
+    // Tax isn't on the form either — it applies silently using the default
+    // rate loaded from Settings into the hidden #invoice-tax field.
+    tax_percent:
+      parseFloat(document.getElementById("invoice-tax").value) || 0,
+    notes: document.getElementById("invoice-notes").value,
+    items: validItems,
+    project_id: projectValue ? parseInt(projectValue) : null,
+    walkin_customer_name:
+      document.getElementById("invoice-walkin-name").value.trim() || null,
+  };
+}
+
+// Saves the invoice and returns {id, invoice_number} on success, or null
+// (after alerting) on failure — shared by all three save buttons.
+async function saveInvoice() {
+  const data = await buildInvoicePayload();
+  if (!data) return null;
+
+  const result = await window.api.invoices.create(state.sessionToken, data);
+  if (!result.success) {
+    alert(result.error?.message || "Failed to create invoice");
+    return null;
+  }
+  return result.data;
+}
+
 document
   .getElementById("invoice-form")
   ?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!document.getElementById("invoice-client").value) {
-      alert("Please select a client");
-      return;
-    }
+    const saved = await saveInvoice();
+    if (saved) navigateTo("invoices");
+  });
 
-    // Stock validation
-    for (const item of lineItems) {
-      if (item.variant_id && item.quantity > 0) {
-        const result = await window.api.products.getVariants(
-          state.sessionToken,
-          item.product_id,
-        );
-        if (result.success) {
-          const variant = result.data.find((v) => v.id === item.variant_id);
-          if (variant && variant.quantity < item.quantity) {
-            alert(
-              `Insufficient stock for ${item.description} (${item.variant_name}). Available: ${variant.quantity}`,
-            );
-            return;
-          }
-        }
-      }
-    }
+document
+  .getElementById("save-print-invoice-btn")
+  ?.addEventListener("click", async () => {
+    const saved = await saveInvoice();
+    if (!saved) return;
+    await viewInvoice(saved.id);
+    window.print();
+  });
 
-    const validItems = lineItems.filter(
-      (i) => i.description || i.product_id || i.service_id,
-    );
-    validItems.forEach((item) => {
-      if (!item.product_id && item.description) {
-        item.line_total = item.quantity * item.unit_price;
-      }
-    });
-
-    const projectValue = document.getElementById("invoice-project").value;
-    const discountType =
-      document.getElementById("invoice-discount-type").value === "amount"
-        ? "amount"
-        : "percent";
-    const discountInput =
-      parseFloat(document.getElementById("invoice-discount").value) || 0;
-    const data = {
-      client_id: parseInt(document.getElementById("invoice-client").value),
-      issue_date: document.getElementById("invoice-issue-date").value,
-      due_date: document.getElementById("invoice-due-date").value,
-      status: document.getElementById("invoice-status").value,
-      payment_method: document.getElementById("invoice-payment-method").value,
-      discount_type: discountType,
-      discount_percent: discountType === "percent" ? discountInput : 0,
-      discount_amount: discountType === "amount" ? discountInput : 0,
-      tax_percent:
-        parseFloat(document.getElementById("invoice-tax").value) || 0,
-      notes: document.getElementById("invoice-notes").value,
-      items: validItems,
-      project_id: projectValue ? parseInt(projectValue) : null,
-      walkin_customer_name:
-        document.getElementById("invoice-walkin-name").value.trim() || null,
-    };
-
-    const result = await window.api.invoices.create(state.sessionToken, data);
-    if (result.success) {
-      navigateTo("invoices");
-    } else {
-      alert(result.error?.message || "Failed to create invoice");
-    }
+document
+  .getElementById("save-download-pdf-btn")
+  ?.addEventListener("click", async () => {
+    const saved = await saveInvoice();
+    if (!saved) return;
+    await downloadPdf(saved.id);
+    navigateTo("invoices");
   });
 
 async function downloadPdf(invoiceId) {
